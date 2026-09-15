@@ -1,45 +1,43 @@
 const paperDetails = {
-  "spatial-outliers-heterogeneity": {
-    title: "Spatial outliers as a pattern determinant for explaining heterogeneity",
+  "alternaria-leaf-blotch": {
+    title: "Climate-driven shifts in suitable areas of Alternaria leaf blotch (Alternaria mali Roberts) on apples: Projections and uncertainty analysis in China",
     authors:
-      "Kai Ren<sup>*</sup>, Yongze Song<sup>*</sup>, Xinyue Yang, Xi Wang, Min Chen, Qiang Yu",
-    venue: "International Journal of Geographical Information Science, 2026",
+      "Bin Chen, Gang Zhao, Qi Tian, L. Yao, G. Wu, J. Wang, Qiang Yu",
+    venue: "Agricultural and Forest Meteorology, 2025",
     image: "image/paper/2026-ijgis-soh/2026-ijgis-soh-m.jpg",
     abstract:
-      "This study proposed a second-dimension outlier-driven heterogeneity (SOH) model for incorporating local outlier configurations into spatial heterogeneity analysis. Applied to Australian barley production, SOH showed that multi-scale spatial outlier patterns strengthened heterogeneity explanation and produced synergistic gains through SOP interactions and SOP-variable interactions.",
-    doi: "https://doi.org/10.1080/13658816.2026.2682957",
-    tutorial: "https://yongzesong.com/reproduce/SOH/soh.html",
+      "This study projects how climate change may shift the suitable areas of Alternaria leaf blotch on apples across China and evaluates uncertainty across climate and modelling scenarios.",
+    doi: "https://doi.org/10.1016/j.agrformet.2025.110464",
     pdf: "#",
     code: "#",
     data: "#",
-    readMore: "details/papers/2026-ijgis-kai-soh/"
+    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:d1gkVwhDpl0C"
   },
-  "singularity-regression-kriging": {
-    title: "A singularity regression kriging for spatial prediction",
-    authors: "Kai Ren, Yongze Song<sup>*</sup>, Min Chen, Qiang Yu",
-    venue: "GIScience & Remote Sensing, 2026",
+  "cotton-irrigation": {
+    title: "Water-saving and economic benefits of a soil moisture threshold-based irrigation strategy for cotton in Xinjiang under climate change",
+    authors: "Bin Chen, L. Yao, Y. Liu, M. A. Benaly, C. Yan, G. Wu, R. Guan, Y. Li, D. Zhang, et al.",
+    venue: "European Journal of Agronomy, 2026",
     image: "image/paper/2026-grs-srk/2026-grs-srk-m.jpg",
     abstract:
-      "This study proposes singularity regression kriging (SRK), combining multi-scale covariate singularity features, random forest trend estimation, and residual kriging to improve prediction accuracy and reduce uncertainty in heterogeneous environments.",
-    doi: "https://doi.org/10.1080/15481603.2026.2690341",
-    tutorial: "https://yongzesong.com/reproduce/SRK/srk.html",
+      "This study evaluates a soil-moisture threshold irrigation strategy for cotton in Xinjiang, quantifying water-saving and economic benefits under current and future climate conditions.",
+    doi: "https://doi.org/10.1016/j.eja.2026.128152",
     pdf: "#",
     code: "#",
     data: "#",
-    readMore: "details/papers/2026-grs-kai-srk/"
+    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:eQOLeE2rZwMC"
   },
-  "second-dimension-outliers": {
-    title: "Second-dimension outliers for spatial prediction",
-    authors: "Ren, K., Song, Y.<sup>*</sup>, Yu, Q.<sup>*</sup>",
-    venue: "International Journal of Geographical Information Science, 2026",
+  "phenology-model-clustering": {
+    title: "Overcoming mechanistic limitations of process-based phenological models: A data clustering method for large-scale applications",
+    authors: "J. Tan, G. Zhao, Q. Tian, L. Zheng, X. Kang, Q. He, Y. Shi, Bin Chen, et al.",
+    venue: "Agricultural and Forest Meteorology, 2024",
     image: "image/paper/2025-ijgis-sdo/2025-ijgis-sdo-m.jpg",
     abstract:
-      "This paper develops the concept of second-dimension outliers for spatial prediction, using spatial outlier patterns to improve the interpretation of heterogeneity and prediction behavior in geographic data.",
-    doi: "https://doi.org/10.1080/13658816.2025.2580414",
+      "This study introduces a data-clustering approach that helps process-based phenological models overcome mechanistic limitations and scale more reliably across heterogeneous environments.",
+    doi: "https://doi.org/10.1016/j.agrformet.2024.110167",
     pdf: "#",
     code: "#",
     data: "#",
-    readMore: "details/papers/2026-ijgis-kai-sdo/"
+    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:UeHWp8X0CEIC"
   },
   "wheat-production": {
     title:
@@ -101,23 +99,23 @@ const paperDetails = {
 };
 
 const paperDetailsZh = {
-  "spatial-outliers-heterogeneity": {
-    ...paperDetails["spatial-outliers-heterogeneity"],
+  "alternaria-leaf-blotch": {
+    ...paperDetails["alternaria-leaf-blotch"],
     abstract:
-      "本文提出第二维异常驱动异质性（SOH）模型，将局部空间异常配置纳入空间异质性分析。以澳大利亚大麦生产为例，多尺度空间异常模式增强了异质性解释能力，并通过空间异常模式之间及其与变量之间的交互产生协同增益。",
-    readMore: "details/papers/2026-ijgis-kai-soh/"
+      "本文预测气候变化下中国苹果褐斑病适生区的变化，并比较不同气候与模型情景带来的不确定性。",
+    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:d1gkVwhDpl0C"
   },
-  "singularity-regression-kriging": {
-    ...paperDetails["singularity-regression-kriging"],
+  "cotton-irrigation": {
+    ...paperDetails["cotton-irrigation"],
     abstract:
-      "本文提出奇异性回归克里金（SRK）模型，将多尺度协变量奇异性特征、随机森林趋势估计与残差克里金相结合，以提升异质环境中的空间预测精度并降低不确定性。",
-    readMore: "details/papers/2026-grs-kai-srk/"
+      "本文评估土壤含水量阈值灌溉策略在新疆棉花生产中的节水与经济效益，并分析气候变化情景下的表现。",
+    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:eQOLeE2rZwMC"
   },
-  "second-dimension-outliers": {
-    ...paperDetails["second-dimension-outliers"],
+  "phenology-model-clustering": {
+    ...paperDetails["phenology-model-clustering"],
     abstract:
-      "本文提出 second-dimension outliers 的概念，用空间异常模式辅助解释地理数据中的异质性和空间预测行为。",
-    readMore: "details/papers/2026-ijgis-kai-sdo/"
+      "本文提出数据聚类方法，帮助基于过程的物候模型克服机理限制，并提升其在大尺度异质环境中的应用能力。",
+    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:UeHWp8X0CEIC"
   },
   "wheat-production": {
     ...paperDetails["wheat-production"],
@@ -161,14 +159,14 @@ const projectDetails = {
     readMore: "#"
   },
   "smart-agriculture": {
-    title: "Shaanxi Smart Agricultural Decision-Making System and Big Data Analysis Platform",
-    category: "Smart Agriculture",
+    title: "United Smart Ag",
+    category: "Smart Agriculture Team",
     image: "image/project/2021-project-smart-agriculture-m.jpg",
-    link: "#",
+    link: "http://www.united-smartag.com/",
     summary:
-      "A big-data platform for dryland agricultural systems and smart orchard decision support, developed under the Sanqin Innovation Team of Smart Agriculture.",
+      "A smart agriculture team connecting agricultural modelling, artificial intelligence, and practical decision support for sustainable farming.",
     methods:
-      "Agricultural climate data collection, crop growth data collection, GIS analysis, smart agriculture decision support, and field validation.",
+      "Agricultural climate and crop data, deep learning, remote sensing, GIS analysis, and field-oriented decision support.",
     readMore: "#"
   },
   "xinjiang-cotton": {
@@ -254,8 +252,9 @@ const projectDetailsZh = {
   "smart-agriculture": {
     ...projectDetails["smart-agriculture"],
     category: "智慧农业",
-    summary: "面向旱地农业系统和智慧果园决策支持的大数据平台，属于智慧农业“三秦创新团队”相关工作。",
-    methods: "农业气候数据采集、作物生长数据采集、GIS 分析、智慧农业决策支持与田间验证。"
+    title: "United Smart Ag 智慧农业团队",
+    summary: "连接农业建模、人工智能与可持续农业决策支持的智慧农业团队。",
+    methods: "农业气候与作物数据、深度学习、遥感、GIS 分析与面向田间的决策支持。"
   },
   "xinjiang-cotton": {
     ...projectDetails["xinjiang-cotton"],
