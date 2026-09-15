@@ -169,6 +169,54 @@ const projectDetails = {
       "Agricultural climate and crop data, deep learning, remote sensing, GIS analysis, and field-oriented decision support.",
     readMore: "#"
   },
+  "zhonglian-rice-smart-protection": {
+    title: "Zhonglian Smart Agriculture Co., Ltd. | Rice Smart Plant-Protection Service R&D Project",
+    category: "Industry R&D Project",
+    organization: "Zhonglian Smart Agriculture Co., Ltd.",
+    funding: "CNY 5,000,000",
+    image: "image/mine/chenbin_Logo.png",
+    link: "#",
+    summary:
+      "Development of rice pest and disease prevention models and intelligent plant-protection services for Zhonglian Smart Agriculture.",
+    methods: "Rice pest and disease modelling, diagnosis, prevention and control decision support.",
+    readMore: "#"
+  },
+  "shaanxi-ai-pest-diagnosis": {
+    title: "AI Diagnosis and Early Warning for Crop Pests and Diseases: Research and Demonstration",
+    category: "Shaanxi Key R&D Program",
+    organization: "Xi'an, Shaanxi, China",
+    grantNumber: "2023-ZDLNY-64",
+    funding: "CNY 650,000",
+    image: "image/mine/chenbin_Logo.png",
+    link: "#",
+    summary:
+      "Research and demonstration of artificial-intelligence diagnosis and early warning for crop pests and diseases.",
+    methods: "AI diagnosis, risk forecasting, early-warning workflows, and field demonstration.",
+    readMore: "#"
+  },
+  "rikaze-barley-phenology": {
+    title: "Shigatse Innovation Base Project | Barley Phenology and Suitable Sowing-Date Models",
+    category: "Innovation Base Project",
+    organization: "Sinochem Modern Agriculture Co., Ltd.",
+    funding: "CNY 350,000",
+    image: "image/mine/chenbin_Logo.png",
+    link: "#",
+    summary:
+      "Development of barley phenology and suitable sowing-date models for the Shigatse innovation base.",
+    methods: "Barley phenology modelling, climate analysis, and suitable sowing-date assessment.",
+    readMore: "#"
+  },
+  "grape-downy-mildew": {
+    title: "Green Integrated Management of Grape Downy Mildew | R&D and Demonstration",
+    category: "Guangxi Key R&D Program",
+    funding: "CNY 650,000",
+    image: "image/mine/chenbin_Logo.png",
+    link: "#",
+    summary:
+      "Research, development, and demonstration of green integrated technologies for grape downy mildew control.",
+    methods: "Disease monitoring, green prevention and control technologies, and application demonstration.",
+    readMore: "#"
+  },
   "xinjiang-cotton": {
     title: "Xinjiang Cotton Decision Management Support System",
     category: "Agricultural GIS",
@@ -256,6 +304,42 @@ const projectDetailsZh = {
     summary: "连接农业建模、人工智能与可持续农业决策支持的智慧农业团队。",
     methods: "农业气候与作物数据、深度学习、遥感、GIS 分析与面向田间的决策支持。"
   },
+  "zhonglian-rice-smart-protection": {
+    ...projectDetails["zhonglian-rice-smart-protection"],
+    title: "中联智慧农业股份有限公司：水稻智能植保服务研发项目",
+    category: "企业研发项目",
+    organization: "中联智慧农业股份有限公司",
+    funding: "500 万 CNY",
+    summary: "为中联智慧农业开发水稻病虫害防控模型与智能植保服务。",
+    methods: "水稻病虫害建模、诊断、防控与智能植保决策支持。"
+  },
+  "shaanxi-ai-pest-diagnosis": {
+    ...projectDetails["shaanxi-ai-pest-diagnosis"],
+    title: "农作物病虫害人工智能诊断预警研究与示范",
+    category: "陕西省重点研发计划（西安，陕西，中国）",
+    organization: "西安，陕西，中国",
+    grantNumber: "2023-ZDLNY-64",
+    funding: "65 万 CNY",
+    summary: "开展农作物病虫害人工智能诊断与预警研究，并进行应用示范。",
+    methods: "人工智能诊断、风险预测、预警流程与田间示范。"
+  },
+  "rikaze-barley-phenology": {
+    ...projectDetails["rikaze-barley-phenology"],
+    title: "日喀则创新基地项目：青稞生育期及适播期模型",
+    category: "创新基地项目",
+    organization: "中化现代农业有限公司",
+    funding: "35 万 CNY",
+    summary: "面向日喀则创新基地开发青稞生育期与适播期模型。",
+    methods: "青稞生育期建模、气候分析与适播期评估。"
+  },
+  "grape-downy-mildew": {
+    ...projectDetails["grape-downy-mildew"],
+    title: "葡萄霜霉病绿色综合防控技术研发与应用示范",
+    category: "广西省重点研发计划",
+    funding: "65 万 CNY",
+    summary: "开展葡萄霜霉病绿色综合防控技术研发与应用示范。",
+    methods: "病害监测、绿色防控技术研发与应用示范。"
+  },
   "xinjiang-cotton": {
     ...projectDetails["xinjiang-cotton"],
     category: "农业 GIS",
@@ -321,6 +405,9 @@ function labels() {
     ? {
         authors: "作者",
         venue: "期刊",
+        organization: "单位",
+        grantNumber: "项目编号",
+        funding: "资助经费",
         abstract: "摘要",
         methods: "方法",
         doi: "DOI",
@@ -334,6 +421,9 @@ function labels() {
     : {
         authors: "Authors",
         venue: "Journal",
+        organization: "Organization",
+        grantNumber: "Grant No.",
+        funding: "Funding",
         abstract: "Abstract",
         methods: "Methods",
         doi: "DOI",
@@ -600,6 +690,9 @@ function setupDetailDialog() {
         `
           <img class="dialog-hero-image project-dialog-image${project.imageFit === "contain" ? " image-contain" : ""}" src="${sitePath(project.image)}" alt="" />
           <p class="card-meta">${project.category}</p>
+          ${project.organization ? `<p><strong>${text.organization}:</strong> ${project.organization}</p>` : ""}
+          ${project.grantNumber ? `<p><strong>${text.grantNumber}:</strong> ${project.grantNumber}</p>` : ""}
+          ${project.funding ? `<p><strong>${text.funding}:</strong> ${project.funding}</p>` : ""}
           ${project.period ? `<p><strong>${project.periodLabel || "Period"}:</strong> ${project.period}</p>` : ""}
           ${project.topic ? `<p><strong>${project.topicLabel || "Research Topic"}:</strong> ${project.topic}</p>` : ""}
           ${project.topicEn ? `<p class="dialog-translation">${project.topicEn}</p>` : ""}
