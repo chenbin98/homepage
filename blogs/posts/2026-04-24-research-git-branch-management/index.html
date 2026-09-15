@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Git Branch Management for Research Projects with Parallel Experiments and AI Collaboration | Bin Chen</title>
+    <meta name="description" content="A research-oriented Git branching convention for parallel experiments, Codex collaboration, worktrees, and reproducible stable releases." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Git and Research Computing · April 24, 2026</p><h1>Git Branch Management for Research Projects with Parallel Experiments and AI Collaboration</h1><p class="blog-article-summary">A research-oriented Git branching convention for parallel experiments, Codex collaboration, worktrees, and reproducible stable releases.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-04-24-research-git-branch-management.png" alt="Git Branch Management for Research Projects with Parallel Experiments and AI Collaboration" /></figure><div class="blog-article-body"><h2 id="why-research-projects-need-a-branching-convention">Why Research
+Projects Need a Branching Convention</h2>
+<p>Research repositories often have several pressures at once:
+<strong>parallel experiments</strong> create branch confusion;
+<strong>AI-assisted programming</strong> makes changes difficult to
+trace; <strong>multi-device development</strong> can create inconsistent
+environments; and <strong>paper reproducibility</strong> requires
+frozen, recoverable results.</p>
+<p>Without a convention, the main branch becomes unstable, experiments
+contaminate one another, AI and manual changes are intermingled, and
+abandoned branches accumulate. This guide presents a practical Git model
+designed for research work.</p>
+<h2 id="design-goals">Design Goals</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Keep main stable</strong></td>
+<td>It should always be deliverable, reproducible, and
+demonstrable.</td>
+</tr>
+<tr>
+<td><strong>Decouple experiments</strong></td>
+<td>Each experiment is independent and does not contaminate others.</td>
+</tr>
+<tr>
+<td><strong>Enable fast iteration</strong></td>
+<td>Failed and abandoned experiments are expected and easy to switch
+away from.</td>
+</tr>
+<tr>
+<td><strong>Converge deliberately</strong></td>
+<td>Validated results enter the main line in a controlled order.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="core-branches">Core Branches</h2>
+<h3 id="main-the-stable-branch">1. main: the stable branch</h3>
+<p>Use main for the final stable version, papers, reports, and external
+releases. It must run completely, reproduce key results, contain no
+temporary cache, log, or checkpoint artifacts, and have a clear
+README.</p>
+<blockquote>
+<p><strong>Principle:</strong> main is the version that can be delivered
+at any time.</p>
+</blockquote>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest tests/</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> train.py <span class="at">--config</span> config.yaml</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> results/</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> README.md</span></code></pre></div>
+<h3 id="dev-the-integration-branch">2. dev: the integration branch</h3>
+<p>Use dev to consolidate experiment results before they reach main. It
+may have minor instability, but it must remain operational. Every
+experiment branch should flow through it:</p>
+<blockquote>
+<p><strong>Flow:</strong> experiment → development → main</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch dev</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> pull origin dev</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> merge exp/xxx <span class="at">--no-ff</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin dev</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> pull origin main</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> merge dev <span class="at">--no-ff</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin main</span></code></pre></div>
+<h3 id="release-branches-frozen-versions">3. release branches: frozen
+versions</h3>
+<p>Use names such as:</p>
+<pre class="text"><code>release/paper-v1
+release/rebuttal-v1
+release/final-model</code></pre>
+<p>A release branch freezes a submission, defense snapshot, or important
+milestone. Do not add features there; permit only small bug or
+documentation corrections.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> release/paper-v1</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin release/paper-v1</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;fix: correct figure annotation&quot;</span></span></code></pre></div>
+<h2 id="experiment-branches">Experiment Branches</h2>
+<p>Use the form:</p>
+<pre class="text"><code>exp/&lt;research-topic&gt;</code></pre>
+<p>For example:</p>
+<pre class="text"><code>exp/m1-dvr-daily-modifier
+exp/spatiotemporal-eval
+exp/site-year-split
+exp/four-model-compare</code></pre>
+<p>Each experiment should be independent, allowed to fail, and kept out
+of main until it is validated. Avoid maintaining primary logic
+indefinitely on an experiment branch, pushing directly to main, or
+combining unrelated experiments in one branch.</p>
+<p>Its lifecycle is:</p>
+<pre class="text"><code>create → develop → evaluate → merge or abandon</code></pre>
+<h2 id="codex-branches-for-ai-collaboration">Codex Branches for AI
+Collaboration</h2>
+<p>Use a separate branch for agent work:</p>
+<pre class="text"><code>codex/&lt;task-description&gt;</code></pre>
+<p>Examples:</p>
+<pre class="text"><code>codex/fix-rollout-eval
+codex/refactor-dataset
+codex/add-figure1</code></pre>
+<p>This isolates AI-produced changes, makes code review clear, and
+enables easy rollback by discarding a branch. The recommended path
+is:</p>
+<blockquote>
+<p><strong>Codex task → experiment → development → main</strong></p>
+</blockquote>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start from the relevant experiment branch</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch exp/m1-dvr-daily-modifier</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> codex/fix-rollout-eval</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Review and merge after the agent task is complete</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch exp/m1-dvr-daily-modifier</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> merge codex/fix-rollout-eval <span class="at">--no-ff</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove the temporary task branch</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch <span class="at">-d</span> codex/fix-rollout-eval</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin <span class="at">--delete</span> codex/fix-rollout-eval</span></code></pre></div>
+<h2 id="backup-branches-a-safety-net">Backup Branches: a Safety Net</h2>
+<p>Use names such as:</p>
+<pre class="text"><code>backup/main-20260424
+backup/exp-m1-before-reset</code></pre>
+<p>Create a backup before a hard reset, force push, large refactor, or
+replacement of main.</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># First preserve a recoverable reference</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch backup/main-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d<span class="va">)</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Then perform the disruptive operation</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> reset <span class="at">--hard</span> HEAD~3</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Recover if needed</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> reset <span class="at">--hard</span> backup/main-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d<span class="va">)</span></span></code></pre></div>
+<blockquote>
+<p><strong>Warning:</strong> hard reset discards uncommitted changes and
+rewrites the checked-out state. Verify the branch and save needed work
+before running it.</p>
+</blockquote>
+<h2 id="standard-workflows">Standard Workflows</h2>
+<h3 id="start-an-experiment">Start an experiment</h3>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch dev</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> pull origin dev</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> exp/my-experiment</span></code></pre></div>
+<h3 id="merge-a-completed-experiment-into-dev">Merge a completed
+experiment into dev</h3>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch dev</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> merge exp/my-experiment <span class="at">--no-ff</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin dev</span></code></pre></div>
+<h3 id="promote-stable-development-work-to-main">Promote stable
+development work to main</h3>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> pull origin main</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> merge dev <span class="at">--no-ff</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin main</span></code></pre></div>
+<h3 id="freeze-a-paper-version">Freeze a paper version</h3>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch main</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> release/paper-v1</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin release/paper-v1</span></code></pre></div>
+<h3 id="use-codex-for-a-scoped-task">Use Codex for a scoped task</h3>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch exp/my-experiment</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> codex/refactor-dataset</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> diff exp/my-experiment...codex/refactor-dataset</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch exp/my-experiment</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> merge codex/refactor-dataset <span class="at">--no-ff</span></span></code></pre></div>
+<h2 id="worktree-and-environment-rules">Worktree and Environment
+Rules</h2>
+<p>Give each task its own branch. Do not ask an agent to edit main
+directly, and do not share one branch among unrelated tasks. Each
+worktree should also have its own environment:</p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> worktree add ../project-exp2 exp/my-experiment</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ../project-exp2</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+<p>Avoid shared virtual environments across worktrees: editable
+installations and generated paths can otherwise couple branches
+unexpectedly.</p>
+<h2 id="admission-criteria-for-main">Admission Criteria for main</h2>
+<p>Before merging to main, confirm that code runs end to end, key
+experiments are reproducible, data paths are documented, temporary
+artifacts are absent, and documentation is current.</p>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;=== Main branch admission check ===&quot;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;1/5 Run tests...&quot;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pytest tests/ <span class="at">-v</span> <span class="kw">||</span> <span class="bu">exit</span> 1</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;2/5 Reproduce a key experiment...&quot;</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> train.py <span class="at">--config</span> config.yaml <span class="at">--reproduce</span> <span class="kw">||</span> <span class="bu">exit</span> 1</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;3/5 Check data paths...&quot;</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="bu">test</span> <span class="at">-d</span> data/ <span class="kw">||</span> <span class="bu">echo</span> <span class="st">&quot;Warning: data/ directory is absent&quot;</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;4/5 Check temporary files...&quot;</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status <span class="at">--porcelain</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-E</span> <span class="st">&quot;\.(log|cache|pt|pth)$&quot;</span> <span class="kw">&amp;&amp;</span> <span class="bu">exit</span> 1</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;5/5 Check documentation...&quot;</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="bu">test</span> <span class="at">-f</span> README.md <span class="kw">||</span> <span class="bu">exit</span> 1</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;All checks passed.&quot;</span></span></code></pre></div>
+<h2 id="branch-cleanup">Branch Cleanup</h2>
+<h3 id="merged-branches">Merged branches</h3>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch <span class="at">-d</span> exp/xxx</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin <span class="at">--delete</span> exp/xxx</span></code></pre></div>
+<h3 id="unmerged-but-abandoned-branches">Unmerged but abandoned
+branches</h3>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch <span class="at">-D</span> exp/xxx</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin <span class="at">--delete</span> exp/xxx</span></code></pre></div>
+<blockquote>
+<p><strong>Warning:</strong> force-deleting a branch removes the local
+reference. Tag or back up work first if it may be useful later.</p>
+</blockquote>
+<h3 id="archive-before-deletion">Archive before deletion</h3>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> tag archive-exp-xxx-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d<span class="va">)</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin archive-exp-xxx-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d<span class="va">)</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch <span class="at">-D</span> exp/xxx</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin <span class="at">--delete</span> exp/xxx</span></code></pre></div>
+<p>A lightweight cleanup script can list merged experiment and Codex
+branches and ask for explicit confirmation before deleting them:</p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;=== Clean merged branches ===&quot;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch <span class="at">--merged</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;exp/&quot;</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch <span class="at">--merged</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;codex/&quot;</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="bu">read</span> <span class="at">-p</span> <span class="st">&quot;Delete the branches listed above? (y/N) &quot;</span> <span class="va">confirm</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$confirm</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;y&quot;</span> <span class="kw">||</span> <span class="st">&quot;</span><span class="va">$confirm</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;Y&quot;</span> <span class="kw">]];</span> <span class="cf">then</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">git</span> branch <span class="at">--merged</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="st">&quot;exp/\|codex/&quot;</span> <span class="kw">|</span> <span class="fu">xargs</span> git branch <span class="at">-d</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Cleanup complete.&quot;</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<h2 id="suggested-repository-topology">Suggested Repository
+Topology</h2>
+<pre class="text"><code>main                          # stable release
+dev                           # integration testing
+
+exp/*                         # research experiments
+  ├── exp/m1-dvr-daily-modifier
+  ├── exp/spatiotemporal-eval
+  └── exp/four-model-compare
+
+codex/*                       # isolated AI tasks
+  ├── codex/fix-rollout-eval
+  └── codex/refactor-dataset
+
+release/*                     # frozen paper milestones
+  ├── release/paper-v1
+  └── release/rebuttal-v1
+
+backup/*                      # recovery references
+  └── backup/main-20260424</code></pre>
+<table>
+<thead>
+<tr>
+<th>Branch type</th>
+<th>Purpose</th>
+<th>Stability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>main</strong></td>
+<td>Stable version</td>
+<td>Highest</td>
+</tr>
+<tr>
+<td><strong>dev</strong></td>
+<td>Integration testing</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>exp</strong></td>
+<td>Research experiments</td>
+<td>Variable</td>
+</tr>
+<tr>
+<td><strong>codex</strong></td>
+<td>Isolated AI task work</td>
+<td>Variable</td>
+</tr>
+<tr>
+<td><strong>release</strong></td>
+<td>Frozen paper version</td>
+<td>High</td>
+</tr>
+<tr>
+<td><strong>backup</strong></td>
+<td>Recovery reference</td>
+<td>Not applicable</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Do not experiment on main. Do not make experimental branches the main
+line. Always keep a route back.</p>
+</blockquote>
+<h2 id="further-automation">Further Automation</h2>
+<h3 id="pre-push-git-hook">Pre-push Git hook</h3>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co"># .git/hooks/pre-push</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="va">current_branch</span><span class="op">=</span><span class="va">$(</span><span class="fu">git</span> symbolic-ref <span class="at">--short</span> HEAD<span class="va">)</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$current_branch</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">&quot;main&quot;</span> <span class="kw">]];</span> <span class="cf">then</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Direct pushes to main are not allowed.&quot;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Merge through dev instead.&quot;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">exit</span> 1</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span></code></pre></div>
+<h3 id="git-aliases">Git aliases</h3>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode ini"><code class="sourceCode ini"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ~/.gitconfig</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">[alias]</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="dt">    newexp </span><span class="ot">=</span><span class="st"> &quot;!f() { git switch dev &amp;&amp; git pull origin dev &amp;&amp; git switch -c exp/$1; }; f&quot;</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="dt">    newcodex </span><span class="ot">=</span><span class="st"> &quot;!f() { git switch -c codex/$1; }; f&quot;</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="dt">    backup </span><span class="ot">=</span><span class="st"> &quot;!f() { git branch backup/$1-$(date +%Y%m%d); }; f&quot;</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="dt">    cleanup </span><span class="ot">=</span><span class="st"> &quot;!git branch --merged | grep -E &#39;exp/|codex/&#39; | xargs git branch -d&quot;</span></span></code></pre></div>
+<h3 id="protect-the-repository-with-.gitignore">Protect the repository
+with .gitignore</h3>
+<pre class="gitignore"><code>*.log
+*.cache
+*.pt
+*.pth
+__pycache__/
+.pytest_cache/
+
+results/large_*/
+checkpoints/
+*.zip
+
+!results/small_result.csv</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li><a
+href="https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell">Git
+documentation: Branches in a Nutshell</a></li>
+<li><a href="https://git-scm.com/docs/git-worktree">Git Worktree
+documentation</a></li>
+<li><a
+href="https://docs.github.com/en/get-started/using-github/github-flow">GitHub
+Flow</a></li>
+</ul>
+<p><em>Originally published April 24, 2026. Tags: Git, research, DevOps,
+AI collaboration, version control.</em></p>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

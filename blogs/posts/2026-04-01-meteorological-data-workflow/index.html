@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A Standard Meteorological Data Workflow with Docker, OpenAPI, and AI Automation | Bin Chen</title>
+    <meta name="description" content="Deploy a local meteorological data service with Docker, retrieve its OpenAPI contract, and use AI to create reusable client code." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Data Engineering · April 1, 2026</p><h1>A Standard Meteorological Data Workflow with Docker, OpenAPI, and AI Automation</h1><p class="blog-article-summary">Deploy a local meteorological data service with Docker, retrieve its OpenAPI contract, and use AI to create reusable client code.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-04-01-meteorological-data-workflow.png" alt="A Standard Meteorological Data Workflow with Docker, OpenAPI, and AI Automation" /></figure><div class="blog-article-body"><h1
+id="a-standard-meteorological-data-workflow-with-docker-openapi-and-ai-automation">A
+Standard Meteorological Data Workflow with Docker, OpenAPI, and AI
+Automation</h1>
+<h2 id="introduction">Introduction</h2>
+<p>Obtaining meteorological data is a common requirement in research and
+data-analysis projects. Repeatedly reading documentation, writing client
+code, and debugging interfaces by hand is inefficient.</p>
+<p>This article presents a standardized workflow: deploy a service
+locally with Docker, retrieve the API contract from OpenAPI, and use AI
+to generate client code. The workflow removes the need to memorize an
+API and can be reused quickly in every new project.</p>
+<h2 id="core-architecture">Core Architecture</h2>
+<pre class="text"><code>Docker container                OpenAPI contract                AI code generation
+meteo-data-download:8000  →    openapi.json              →    Python script</code></pre>
+<p><strong>Key principles:</strong></p>
+<ul>
+<li>Do not depend on <code>/docs</code>, which is designed for people
+rather than automation.</li>
+<li>Use <code>openapi.json</code>, a machine-readable standard.</li>
+<li>Repeat the same workflow for every new project.</li>
+<li>Do not memorize APIs; follow the standard process.</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="environment-requirements">Environment requirements</h3>
+<ul>
+<li>Docker is installed and running.</li>
+<li>Python 3.8 or later is available.</li>
+<li><code>curl</code> or <code>wget</code> is available.</li>
+<li>An AI assistant is available for code generation.</li>
+</ul>
+<h3 id="service-endpoints">Service endpoints</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local service</td>
+<td><code>http://127.0.0.1:8000</code></td>
+</tr>
+<tr>
+<td>OpenAPI definition</td>
+<td><code>http://127.0.0.1:8000/openapi.json</code></td>
+</tr>
+<tr>
+<td>Documentation page</td>
+<td><code>http://127.0.0.1:8000/docs</code> (reference only)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="standard-workflow">Standard Workflow</h2>
+<h3 id="step-1-check-whether-the-docker-service-is-running">Step 1:
+Check Whether the Docker Service Is Running</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> ps <span class="kw">|</span> <span class="fu">grep</span> meteo-data-download</span></code></pre></div>
+<p>If it is running, continue. Otherwise start it:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Existing container</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> start meteo-data-download</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Or first run</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-d</span> <span class="at">-p</span> 8000:8000 <span class="at">--name</span> meteo-data-download your-image</span></code></pre></div>
+<h3 id="step-2-retrieve-the-api-contract">Step 2: Retrieve the API
+Contract</h3>
+<p>In every new project, create an <code>api</code> directory and
+download the OpenAPI definition:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> api <span class="kw">&amp;&amp;</span> <span class="ex">curl</span> <span class="at">-s</span> http://127.0.0.1:8000/openapi.json <span class="at">-o</span> ./api/openapi.json</span></code></pre></div>
+<p><strong>Why this step matters:</strong></p>
+<ul>
+<li>The OpenAPI contract contains complete endpoint definitions.</li>
+<li>AI can use it to generate accurate calling code.</li>
+<li>It avoids mistakes caused by manually reading documentation.</li>
+</ul>
+<h3 id="step-3-ask-ai-to-write-code-from-the-contract">Step 3: Ask AI to
+Write Code from the Contract</h3>
+<p>Give the AI the following information:</p>
+<ol type="1">
+<li>Local service address: <code>http://127.0.0.1:8000</code></li>
+<li>Contract file: <code>./api/openapi.json</code></li>
+<li>A user requirement, such as downloading meteorological data for a
+specified area and time range.</li>
+</ol>
+<p>Use this prompt template:</p>
+<pre class="text"><code>This project needs to call a local meteorological service.
+
+Service address:
+http://127.0.0.1:8000
+
+API definition file:
+./api/openapi.json
+
+Please complete the following tasks:
+1. Read ./api/openapi.json first and identify available endpoints, parameters, and response structures.
+2. Use the real interface to write code that downloads meteorological data.
+
+Requirements:
+- Follow the interfaces in openapi.json exactly; do not assume undocumented endpoints.
+- Use Python.
+- Package the logic as a reusable function or class.
+- Write all comments in English.
+- Include error handling and timeouts.
+- Provide a minimal runnable example.</code></pre>
+<h3 id="step-4-run-the-ai-generated-code">Step 4: Run the AI-Generated
+Code</h3>
+<p>AI can produce code similar to the following:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Dict, Any</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MeteoDataClient:</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">&quot;&quot;&quot;Client for downloading meteorological data from local Docker service.&quot;&quot;&quot;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, base_url: <span class="bu">str</span> <span class="op">=</span> <span class="st">&quot;http://127.0.0.1:8000&quot;</span>, timeout: <span class="bu">int</span> <span class="op">=</span> <span class="dv">30</span>):</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.base_url <span class="op">=</span> base_url</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.timeout <span class="op">=</span> timeout</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.session <span class="op">=</span> requests.Session()</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> download_weather_data(</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        latitude: <span class="bu">float</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        longitude: <span class="bu">float</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        start_date: <span class="bu">str</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        end_date: <span class="bu">str</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>        variables: <span class="bu">list</span>[<span class="bu">str</span>]</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, Any]:</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co">        Download weather data for specified location and time range.</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">        Args:</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co">            latitude: Latitude coordinate</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co">            longitude: Longitude coordinate</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co">            start_date: Start date in YYYY-MM-DD format</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="co">            end_date: End date in YYYY-MM-DD format</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="co">            variables: List of weather variables to download</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="co">        Returns:</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a><span class="co">            Dictionary containing weather data</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="co">        Raises:</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="co">            requests.exceptions.RequestException: If API call fails</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a><span class="co">        &quot;&quot;&quot;</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>        endpoint <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>base_url<span class="sc">}</span><span class="ss">/api/download&quot;</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>        payload <span class="op">=</span> {</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;latitude&quot;</span>: latitude,</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;longitude&quot;</span>: longitude,</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;start_date&quot;</span>: start_date,</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;end_date&quot;</span>: end_date,</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;variables&quot;</span>: variables</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>        response <span class="op">=</span> <span class="va">self</span>.session.post(</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>            endpoint,</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>            json<span class="op">=</span>payload,</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>            timeout<span class="op">=</span><span class="va">self</span>.timeout</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>        response.raise_for_status()</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> response.json()</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>    client <span class="op">=</span> MeteoDataClient()</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> client.download_weather_data(</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>            latitude<span class="op">=</span><span class="fl">39.9042</span>,</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>            longitude<span class="op">=</span><span class="fl">116.4074</span>,</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>            start_date<span class="op">=</span><span class="st">&quot;2026-01-01&quot;</span>,</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>            end_date<span class="op">=</span><span class="st">&quot;2026-01-31&quot;</span>,</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>            variables<span class="op">=</span>[<span class="st">&quot;temperature&quot;</span>, <span class="st">&quot;humidity&quot;</span>, <span class="st">&quot;precipitation&quot;</span>]</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(<span class="st">&quot;weather_data.json&quot;</span>, <span class="st">&quot;w&quot;</span>) <span class="im">as</span> f:</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>            json.dump(data, f, indent<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Downloaded </span><span class="sc">{</span><span class="bu">len</span>(data.get(<span class="st">&#39;results&#39;</span>, []))<span class="sc">}</span><span class="ss"> records&quot;</span>)</span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.RequestException <span class="im">as</span> e:</span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div>
+<p>Run the generated code to obtain meteorological data. Results can be
+saved as CSV or JSON, expanded to batch downloads, or integrated into an
+existing data-processing workflow.</p>
+<h2 id="example-project-structure">Example Project Structure</h2>
+<pre class="text"><code>my-research-project/
+├── api/
+│   └── openapi.json          # Retrieved from the local service
+├── scripts/
+│   └── download_weather.py   # AI-generated download script
+├── data/
+│   └── weather_data.json     # Downloaded meteorological data
+└── README.md</code></pre>
+<h2 id="common-questions">Common Questions</h2>
+<h3 id="q1-what-if-the-service-does-not-start">Q1: What if the service
+does not start?</h3>
+<p>Check Docker logs:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> logs meteo-data-download</span></code></pre></div>
+<p>Common causes include:</p>
+<ul>
+<li>Port 8000 is already in use; change the mapping to
+<code>-p 8001:8000</code>.</li>
+<li>The image does not exist; pull or build it first.</li>
+<li>Memory is insufficient; inspect system resources.</li>
+</ul>
+<h3 id="q2-what-if-the-openapi-contract-cannot-be-retrieved">Q2: What if
+the OpenAPI contract cannot be retrieved?</h3>
+<p>Check the service manually:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://127.0.0.1:8000/openapi.json</span></code></pre></div>
+<p>If JSON is returned, the service is available; then inspect network
+or firewall settings. If the connection fails, the service is not
+running or the port is incorrect.</p>
+<h3 id="q3-what-if-ai-generated-code-does-not-run">Q3: What if
+AI-generated code does not run?</h3>
+<ol type="1">
+<li>Confirm that <code>openapi.json</code> is current because the
+service may have changed.</li>
+<li>Repeat Step 2 to retrieve the newest contract.</li>
+<li>Confirm that the AI followed the actual contract rather than
+assuming endpoints.</li>
+<li>Inspect the error and refine the prompt before generating
+again.</li>
+</ol>
+<h3 id="q4-how-can-data-for-multiple-locations-be-downloaded">Q4: How
+can data for multiple locations be downloaded?</h3>
+<p>Extend the generated code:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>locations <span class="op">=</span> [</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    {<span class="st">&quot;name&quot;</span>: <span class="st">&quot;Beijing&quot;</span>, <span class="st">&quot;lat&quot;</span>: <span class="fl">39.9042</span>, <span class="st">&quot;lon&quot;</span>: <span class="fl">116.4074</span>},</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    {<span class="st">&quot;name&quot;</span>: <span class="st">&quot;Shanghai&quot;</span>, <span class="st">&quot;lat&quot;</span>: <span class="fl">31.2304</span>, <span class="st">&quot;lon&quot;</span>: <span class="fl">121.4737</span>},</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    {<span class="st">&quot;name&quot;</span>: <span class="st">&quot;Guangzhou&quot;</span>, <span class="st">&quot;lat&quot;</span>: <span class="fl">23.1291</span>, <span class="st">&quot;lon&quot;</span>: <span class="fl">113.2644</span>},</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> loc <span class="kw">in</span> locations:</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> client.download_weather_data(</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>        latitude<span class="op">=</span>loc[<span class="st">&quot;lat&quot;</span>],</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        longitude<span class="op">=</span>loc[<span class="st">&quot;lon&quot;</span>],</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>        start_date<span class="op">=</span><span class="st">&quot;2026-01-01&quot;</span>,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>        end_date<span class="op">=</span><span class="st">&quot;2026-01-31&quot;</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>        variables<span class="op">=</span>[<span class="st">&quot;temperature&quot;</span>, <span class="st">&quot;humidity&quot;</span>]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f&quot;data/</span><span class="sc">{</span>loc[<span class="st">&#39;name&#39;</span>]<span class="sc">}</span><span class="ss">_weather.json&quot;</span>, <span class="st">&quot;w&quot;</span>) <span class="im">as</span> f:</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>        json.dump(data, f, indent<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>loc[<span class="st">&#39;name&#39;</span>]<span class="sc">}</span><span class="ss"> downloaded&quot;</span>)</span></code></pre></div>
+<h2 id="advantages">Advantages</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Traditional approach</th>
+<th>Standard workflow</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Manually read documentation and make mistakes</td>
+<td>AI generates code from the OpenAPI contract</td>
+</tr>
+<tr>
+<td>Rewrite code in every project</td>
+<td>Reuse a standardized workflow</td>
+</tr>
+<tr>
+<td>Update code manually after API changes</td>
+<td>Retrieve <code>openapi.json</code> again</td>
+</tr>
+<tr>
+<td>Memorize endpoint parameters</td>
+<td>Follow the workflow instead</td>
+</tr>
+<tr>
+<td>Long debugging cycles</td>
+<td>AI generation plus structured error handling</td>
+</tr>
+</tbody>
+</table>
+<h2 id="extensions">Extensions</h2>
+<p>This workflow is not limited to meteorological data. It also applies
+to:</p>
+<ul>
+<li>Other local API services, including databases, file processing, and
+AI models</li>
+<li>Team standardization, where every member follows the same
+process</li>
+<li>CI/CD integration for automated data acquisition</li>
+<li>Research reproducibility through standardized data-download
+scripts</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<p>Combining a local Docker service, an OpenAPI contract, and AI code
+generation creates a standardized meteorological-data workflow:</p>
+<ol type="1">
+<li>No need to memorize API details.</li>
+<li>Quick reuse in every project.</li>
+<li>More accurate and reliable code.</li>
+<li>Easier maintenance and extension.</li>
+</ol>
+<p>The central idea is to standardize repeated work, automate
+standardized work, let AI handle routine detail, and reserve human
+attention for higher-level decisions.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://swagger.io/specification/">OpenAPI
+Specification</a></li>
+<li><a href="https://docs.docker.com/">Docker Documentation</a></li>
+<li><a href="https://docs.python-requests.org/">Requests
+Library</a></li>
+<li><a href="https://github.com/luongnv89/claude-howto">AI for Code
+Generation Best Practices</a></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

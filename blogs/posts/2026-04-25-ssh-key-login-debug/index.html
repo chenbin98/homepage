@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Debugging SSH Key Login When the Server Accepts the Key but Still Returns Permission Denied | Bin Chen</title>
+    <meta name="description" content="A diagnostic workflow for cases where authorized_keys is correct and the server accepts a public key, but the local client cannot complete authentication." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Infrastructure · April 25, 2026</p><h1>Debugging SSH Key Login When the Server Accepts the Key but Still Returns Permission Denied</h1><p class="blog-article-summary">A diagnostic workflow for cases where authorized_keys is correct and the server accepts a public key, but the local client cannot complete authentication.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-04-25-ssh-key-login-debug.png" alt="Debugging SSH Key Login When the Server Accepts the Key but Still Returns Permission Denied" /></figure><div class="blog-article-body"><h2 id="the-problem">The Problem</h2>
+<p>Password login worked, but key-based login to a Windows OpenSSH
+Server continued to fail. The common first assumptions are an incorrect
+authorized_keys entry, a copied public key, or bad remote directory
+permissions. In this case, none of those was the root cause.</p>
+<p>The remote server already held the correct public key and sshd
+accepted it. The local client could not use the matching private key to
+sign the authentication exchange.</p>
+<blockquote>
+<p>Seeing “Server accepts key” does not mean login is complete. It means
+only that the server recognizes the public key; the client must still
+sign with the corresponding private key.</p>
+</blockquote>
+<p>Real passwords and key material are intentionally omitted here. The
+diagnostic procedure is reusable.</p>
+<h2 id="environment">Environment</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local system</td>
+<td>macOS</td>
+</tr>
+<tr>
+<td>Local client</td>
+<td>OpenSSH</td>
+</tr>
+<tr>
+<td>Remote system</td>
+<td>Windows OpenSSH Server</td>
+</tr>
+<tr>
+<td>Remote user directory</td>
+<td>C:&lt;user&gt;</td>
+</tr>
+<tr>
+<td>Goal</td>
+<td>Run SSH without entering a password</td>
+</tr>
+</tbody>
+</table>
+<p>For Windows OpenSSH, the usual remote authorized key file is
+C:&lt;user&gt;.ssh_keys.</p>
+<h2 id="step-1-reproduce-a-real-public-key-failure">Step 1: Reproduce a
+Real Public-Key Failure</h2>
+<p>Do not rely on a normal SSH command because it may silently fall back
+to password authentication. Disable password and keyboard-interactive
+methods explicitly:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-vvv</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-o</span> BatchMode=yes <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-o</span> PasswordAuthentication=no <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-o</span> KbdInteractiveAuthentication=no <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  user@192.168.x.x <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;whoami&quot;</span></span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Option</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-vvv</td>
+<td>Print detailed SSH diagnostics</td>
+</tr>
+<tr>
+<td>BatchMode=yes</td>
+<td>Disallow interactive input; appropriate for real key-login
+verification</td>
+</tr>
+<tr>
+<td>PasswordAuthentication=no</td>
+<td>Disable password authentication</td>
+</tr>
+<tr>
+<td>KbdInteractiveAuthentication=no</td>
+<td>Disable keyboard-interactive authentication</td>
+</tr>
+</tbody>
+</table>
+<p>If this succeeds, key-based login is working. If it fails, use the
+verbose log to locate the failed public-key step.</p>
+<h2 id="the-key-observation">The Key Observation</h2>
+<pre class="text"><code>Offering public key: /Users/.../.ssh/id_ed25519_new ED25519 SHA256:...
+Server accepts key: /Users/.../.ssh/id_ed25519_new ED25519 SHA256:...
+sign_and_send_pubkey: signing using ssh-ed25519 SHA256:...
+No more authentication methods to try.
+Permission denied (publickey,password,keyboard-interactive).</code></pre>
+<p>This establishes that the remote authorized_keys file contains the
+public key, remote sshd permits public-key authentication, and the
+remote account and path are broadly correct.</p>
+<p>Public-key authentication still has another required stage:</p>
+<ol type="1">
+<li>The client offers a public key.</li>
+<li>The server recognizes that public key.</li>
+<li>The client signs authentication data with the matching private
+key.</li>
+<li>The server verifies the signature.</li>
+</ol>
+<p>A failure after “Server accepts key” directs attention to the
+usability of the <strong>local private key</strong>.</p>
+<h2 id="inspect-the-local-ssh-configuration">Inspect the Local SSH
+Configuration</h2>
+<p>First inspect the effective configuration for the target:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-G</span> user@192.168.x.x <span class="kw">|</span> <span class="fu">sed</span> <span class="at">-n</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;/^user /p;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">   /^hostname /p;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">   /^port /p;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="st">   /^identityfile /p;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">   /^identitiesonly /p;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="st">   /^pubkeyauthentication /p&#39;</span></span></code></pre></div>
+<p>The relevant result was:</p>
+<pre class="text"><code>identityfile ~/.ssh/id_ed25519_new
+pubkeyauthentication true</code></pre>
+<p>Inspect the key directory and the agent:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-ld</span> ~/.ssh</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-l</span> ~/.ssh</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> <span class="at">-l</span> <span class="at">-E</span> sha256</span></code></pre></div>
+<p>The agent reported no identities, meaning no private key was
+loaded.</p>
+<h2 id="check-whether-the-private-key-needs-a-passphrase">Check Whether
+the Private Key Needs a Passphrase</h2>
+<p>Test whether the chosen key can be used non-interactively:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-y</span> <span class="at">-f</span> ~/.ssh/id_ed25519_new</span></code></pre></div>
+<p>The result prompted for a passphrase and could not decrypt the
+private key. The diagnosis was:</p>
+<blockquote>
+<p>The configured private key was encrypted and required a passphrase,
+but it was not loaded in ssh-agent. The server could accept the public
+key while the client could not complete the signature.</p>
+</blockquote>
+<h2 id="verify-the-remote-side">Verify the Remote Side</h2>
+<p>Check the remote configuration as well, so the conclusion is not
+based only on local evidence:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">$sshdir</span> <span class="op">=</span> <span class="fu">Join-Path</span> <span class="va">$env</span><span class="op">:</span><span class="va">USERPROFILE</span> <span class="st">&quot;.ssh&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="va">$ak</span> <span class="op">=</span> <span class="fu">Join-Path</span> <span class="va">$sshdir</span> <span class="st">&quot;authorized_keys&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-ChildItem</span> <span class="op">-</span>Force <span class="va">$sshdir</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">Get-Content</span> <span class="va">$ak</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>icacls <span class="va">$sshdir</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>icacls <span class="va">$ak</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">Select-String</span> <span class="op">-</span>Path <span class="st">&quot;</span><span class="va">$env</span><span class="op">:</span><span class="va">ProgramData</span><span class="st">\ssh\sshd_config&quot;</span> <span class="op">-</span>Pattern <span class="st">&quot;PubkeyAuthentication|AuthorizedKeysFile|PasswordAuthentication|StrictModes&quot;</span></span></code></pre></div>
+<p>The relevant configuration was:</p>
+<pre class="text"><code>PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys</code></pre>
+<p>Confirm that the public-key fingerprint in authorized_keys matches
+the local public key. When these checks match, the remote side is not
+the primary cause.</p>
+<h2 id="two-repair-paths">Two Repair Paths</h2>
+<h3 id="option-1-keep-the-encrypted-key-and-add-it-to-ssh-agent">Option
+1: Keep the encrypted key and add it to ssh-agent</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> ~/.ssh/id_ed25519_new</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> <span class="at">-l</span> <span class="at">-E</span> sha256</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> <span class="at">--apple-use-keychain</span> ~/.ssh/id_ed25519_new</span></code></pre></div>
+<p>On macOS, configure the host as follows if Keychain integration is
+wanted:</p>
+<pre class="sshconfig"><code>Host 192.168.x.x
+  HostName 192.168.x.x
+  User user
+  IdentityFile ~/.ssh/id_ed25519_new
+  AddKeysToAgent yes
+  UseKeychain yes</code></pre>
+<p>This preserves passphrase protection but relies on the agent and
+Keychain.</p>
+<h3 id="option-2-use-an-already-usable-key">Option 2: Use an already
+usable key</h3>
+<p>The final repair used an existing local key. Verify and inspect its
+public key:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-y</span> <span class="at">-f</span> ~/.ssh/id_ed25519 <span class="op">&gt;</span>/tmp/id_ed25519.pub</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-lf</span> ~/.ssh/id_ed25519.pub <span class="at">-E</span> sha256</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/id_ed25519.pub</span></code></pre></div>
+<p>Append only that required public key to the remote authorized_keys
+file, then configure the client:</p>
+<pre class="sshconfig"><code>Host 192.168.x.x
+  HostName 192.168.x.x
+  User user
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes</code></pre>
+<p>IdentitiesOnly is important: it makes the client try only the
+specified key, avoiding interference from agent identities or default
+key lists.</p>
+<h2 id="final-verification">Final Verification</h2>
+<p>Run the strict test again:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-o</span> BatchMode=yes <span class="dt">\</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-o</span> PasswordAuthentication=no <span class="dt">\</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-o</span> KbdInteractiveAuthentication=no <span class="dt">\</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  user@192.168.x.x <span class="dt">\</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;whoami&quot;</span></span></code></pre></div>
+<p>A successful verbose log includes:</p>
+<pre class="text"><code>Offering public key: /Users/.../.ssh/id_ed25519 ED25519 SHA256:...
+Server accepts key: /Users/.../.ssh/id_ed25519 ED25519 SHA256:...
+Authenticated to 192.168.x.x using &quot;publickey&quot;.</code></pre>
+<h2 id="troubleshooting-checklist">Troubleshooting Checklist</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Step</th>
+<th>Command or evidence</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inspect effective configuration</td>
+<td>ssh -G user@host</td>
+<td>Confirm which key the client really uses</td>
+</tr>
+<tr>
+<td>Disable password fallback</td>
+<td>BatchMode and PasswordAuthentication=no</td>
+<td>Avoid a false success via password</td>
+</tr>
+<tr>
+<td>Review verbose logs</td>
+<td>ssh -vvv user@host</td>
+<td>Locate failure before or after key acceptance</td>
+</tr>
+<tr>
+<td>Inspect agent</td>
+<td>ssh-add -l -E sha256</td>
+<td>Confirm that the key is loaded</td>
+</tr>
+<tr>
+<td>Test private-key usability</td>
+<td>ssh-keygen -y -f ~/.ssh/key</td>
+<td>Detect passphrase or corruption problems</td>
+</tr>
+<tr>
+<td>Inspect remote key file</td>
+<td>authorized_keys</td>
+<td>Confirm matching fingerprint</td>
+</tr>
+<tr>
+<td>Inspect remote sshd</td>
+<td>sshd_config</td>
+<td>Confirm public-key authentication is permitted</td>
+</tr>
+</tbody>
+</table>
+<h2 id="frequent-mistakes">Frequent Mistakes</h2>
+<h3 id="server-accepts-key-means-login-should-work">“Server accepts key”
+means login should work</h3>
+<p>No. It confirms public-key recognition only; the client must still
+sign with its private key. An encrypted, locked, or unavailable private
+key still causes failure.</p>
+<h3 id="a-normal-ssh-command-succeeds-so-passwordless-login-works">A
+normal SSH command succeeds, so passwordless login works</h3>
+<p>Not necessarily. It may have fallen back to password authentication.
+Verify with batch mode and password authentication disabled.</p>
+<h3 id="put-every-local-public-key-in-authorized_keys">Put every local
+public key in authorized_keys</h3>
+<p>That can appear to fix the issue, but it is hard to maintain.
+Instead, specify the intended key per host, add only that key remotely,
+and set IdentityFile plus IdentitiesOnly.</p>
+<h2 id="summary">Summary</h2>
+<p>The root cause was not an incorrect remote authorized_keys file. The
+local SSH configuration pointed to an encrypted private key that
+required a passphrase and was not loaded into ssh-agent. The server
+accepted the matching public key, but the client could not sign.</p>
+<p>The repair was to use an already usable local key, add its public key
+remotely, configure the host with IdentityFile and IdentitiesOnly, and
+validate with BatchMode enabled. The general lesson is simple: when key
+login fails, verify both the remote authorized key <strong>and</strong>
+whether the local private key can actually sign.</p>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

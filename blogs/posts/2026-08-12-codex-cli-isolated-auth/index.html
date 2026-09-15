@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Keep Codex App on ChatGPT While Using an API Key in an Isolated Codex CLI | Bin Chen</title>
+    <meta name="description" content="Use an isolated CODEX_HOME for API-key CLI authentication without replacing the ChatGPT subscription login used by Codex App and the default CLI." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">AI Tools · August 12, 2026</p><h1>Keep Codex App on ChatGPT While Using an API Key in an Isolated Codex CLI</h1><p class="blog-article-summary">Use an isolated CODEX_HOME for API-key CLI authentication without replacing the ChatGPT subscription login used by Codex App and the default CLI.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-08-12-codex-cli-isolated-auth.png" alt="Keep Codex App on ChatGPT While Using an API Key in an Isolated Codex CLI" /></figure><div class="blog-article-body"><h2 id="the-requirement">The Requirement</h2>
+<p>Codex supports two primary authentication paths:</p>
+<ul>
+<li>sign in with a ChatGPT account and use the Codex access included in
+the relevant ChatGPT plan;</li>
+<li>sign in with an OpenAI API key and pay through the OpenAI Platform
+API account.</li>
+</ul>
+<p>A common requirement is to keep Codex App on an already authorized
+ChatGPT subscription while using an API key in the terminal. When
+reauthorization requires an administrator or another person, the
+requirement is not merely to be able to switch back: changing the CLI
+must <strong>not disturb the protected existing login</strong>.</p>
+<p>A direct default-profile sequence can be risky:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">codex</span> logout</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">printenv</span> OPENAI_API_KEY <span class="kw">|</span> <span class="ex">codex</span> login <span class="at">--with-api-key</span></span></code></pre></div>
+<p>The issue is not billing conflict. Default clients can share
+authentication state. Logging out clears that default state, and API-key
+login can replace it. Even if the app looks signed in immediately, a
+restart or credential refresh can expose the disruption.</p>
+<p>The conservative approach is to give the API-key CLI an independent
+CODEX_HOME so it has separate authentication and configuration, while
+the default profile is left untouched.</p>
+<h2 id="authentication-and-local-state">Authentication and Local
+State</h2>
+<table>
+<thead>
+<tr>
+<th>Sign-in method</th>
+<th>Access and billing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ChatGPT sign-in</td>
+<td>ChatGPT subscription access and plan allowance</td>
+</tr>
+<tr>
+<td>API key sign-in</td>
+<td>OpenAI Platform account and standard API pricing</td>
+</tr>
+</tbody>
+</table>
+<p>API-key authentication is useful for local CLI and automation. Some
+features dependent on the ChatGPT workspace or cloud may be unavailable.
+The important technical issue is where credentials are stored.</p>
+<p>The Codex CLI and IDE integration can share cached login state.
+Authentication commonly resides in the operating-system credential store
+or in the default Codex directory, including an auth.json file. A
+practical local check showed that a fresh, separate CODEX_HOME reported
+“Not logged in” while the default ChatGPT profile continued to report
+“Logged in using ChatGPT.”</p>
+<p>The safety conclusion is simple: do not assume the app and default
+CLI are completely independent when the account is costly to
+reauthorize. Isolate the second login deliberately.</p>
+<h2 id="why-codex_home-works">Why CODEX_HOME Works</h2>
+<p>CODEX_HOME selects the Codex working directory. The default is the
+standard Codex profile directory; a different value causes Codex to
+create and use separate authentication and configuration there.</p>
+<p>Do not copy or symlink an OAuth auth file between profiles. Refresh
+tokens can become invalid or create confusing state. Instead, sign in
+independently with the API key in the new profile.</p>
+<h2 id="safe-setup-procedure">Safe Setup Procedure</h2>
+<h3 id="verify-the-protected-default-login-first">1. Verify the
+protected default login first</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">codex</span> login status</span></code></pre></div>
+<p>The expected result is a ChatGPT login. If not, stop and establish
+the current state before doing anything else.</p>
+<h3 id="create-a-dedicated-api-key-profile-directory">2. Create a
+dedicated API-key profile directory</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> <span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.codex-api&quot;</span></span></code></pre></div>
+<p>The intended separation is:</p>
+<pre class="text"><code>~/.codex       → existing ChatGPT subscription login
+~/.codex-api   → isolated API-key CLI login</code></pre>
+<h3
+id="read-the-api-key-safely-and-log-in-only-in-the-isolated-profile">3.
+Read the API key safely and log in only in the isolated profile</h3>
+<p>Do not place a real API key in a command line, source file, or shell
+history. Use hidden interactive input:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">read</span> <span class="at">-s</span> <span class="st">&quot;CODEX_API_KEY?Enter OpenAI API Key: &quot;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">&#39;%s&#39;</span> <span class="st">&quot;</span><span class="va">$CODEX_API_KEY</span><span class="st">&quot;</span> <span class="kw">|</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">env</span> CODEX_HOME=<span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.codex-api&quot;</span> codex login <span class="at">--with-api-key</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="bu">unset</span> <span class="va">CODEX_API_KEY</span></span></code></pre></div>
+<p>The important rule is that every API-key authentication command is
+prefixed by the isolated CODEX_HOME. Removing the temporary environment
+variable does not remove the login saved in the isolated profile.</p>
+<h3 id="verify-both-profiles-independently">4. Verify both profiles
+independently</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env</span> CODEX_HOME=<span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.codex-api&quot;</span> codex login status</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">codex</span> login status</span></code></pre></div>
+<p>The first should report an API-key login; the second should still
+report a ChatGPT login. Both checks must pass before treating the
+isolation as complete.</p>
+<h3 id="start-the-api-key-cli-explicitly">5. Start the API-key CLI
+explicitly</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env</span> CODEX_HOME=<span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.codex-api&quot;</span> codex</span></code></pre></div>
+<p>Running plain Codex without the environment override remains in the
+default authentication profile and normally continues to use the ChatGPT
+subscription.</p>
+<h3 id="make-the-safe-command-hard-to-mistype">6. Make the safe command
+hard to mistype</h3>
+<p>Add a zsh helper:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">codex-api()</span> <span class="kw">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">CODEX_HOME</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.codex-api&quot;</span> <span class="bu">command</span> codex <span class="st">&quot;</span><span class="va">$@</span><span class="st">&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+<p>Reload the shell configuration and use:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> <span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.zshrc&quot;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">codex-api</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">codex-api</span> login status</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Use</th>
+<th>Command</th>
+<th>Authentication and billing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Codex App</td>
+<td>Open normally from the desktop</td>
+<td>Existing ChatGPT subscription</td>
+</tr>
+<tr>
+<td>Default terminal CLI</td>
+<td>codex</td>
+<td>Default ChatGPT profile</td>
+</tr>
+<tr>
+<td>API-key terminal CLI</td>
+<td>codex-api</td>
+<td>Isolated API-key profile and API billing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="log-out-only-from-the-api-key-profile">7. Log out only from the
+API-key profile</h3>
+<p>If the API-key login must be removed later, explicitly select its
+profile:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env</span> CODEX_HOME=<span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.codex-api&quot;</span> codex logout</span></code></pre></div>
+<p>Do not run a plain logout command unless the default ChatGPT
+authentication is intended to be removed.</p>
+<h2 id="stronger-isolation-options">Stronger Isolation Options</h2>
+<p>An independent CODEX_HOME separates Codex configuration and
+authentication files. When reauthorization is extremely difficult or
+organization-level isolation is necessary, put the API-key CLI in a
+separate macOS user account, Docker container, virtual machine, or
+remote host. Those alternatives also separate operating-system
+credential stores and process environments.</p>
+<h2 id="summary">Summary</h2>
+<p>ChatGPT and API-key sign-ins do not conflict as billing methods, but
+switching the default Codex profile can overwrite shared local state.
+The robust design is:</p>
+<pre class="text"><code>Default Codex profile      → preserve ChatGPT subscription login
+Independent Codex profile  → use API-key CLI authentication</code></pre>
+<p>Follow four rules:</p>
+<ol type="1">
+<li>run login-status checks before changing authentication;</li>
+<li>never log out or perform API-key login in the default profile when
+it must be protected;</li>
+<li>assign a separate CODEX_HOME to the API-key CLI;</li>
+<li>verify both profiles separately after login.</li>
+</ol>
+<p>The point is not to recover a protected login later; it is to avoid
+changing it in the first place.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://learn.chatgpt.com/docs/auth">Codex
+authentication</a></li>
+<li><a href="https://github.com/openai/codex">OpenAI Codex
+repository</a></li>
+<li><a href="https://github.com/openai/codex/issues/15410">Independent
+CODEX_HOME authentication profiles</a></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

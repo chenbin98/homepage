@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deploying Python Back-End Services with systemd, venv, and Nginx | Bin Chen</title>
+    <meta name="description" content="A native Linux deployment workflow for a Python back-end service managed by systemd and exposed through Nginx." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Back-End Deployment · January 4, 2026</p><h1>Deploying Python Back-End Services with systemd, venv, and Nginx</h1><p class="blog-article-summary">A native Linux deployment workflow for a Python back-end service managed by systemd and exposed through Nginx.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-01-04-systemd-venv-nginx.png" alt="Deploying Python Back-End Services with systemd, venv, and Nginx" /></figure><div class="blog-article-body"><h1
+id="deploying-python-back-end-services-with-systemd-venv-and-nginx">Deploying
+Python Back-End Services with systemd, venv, and Nginx</h1>
+<p>This article records a native deployment workflow for a Python
+back-end service, using the Rose WeChat Agent project as an example. The
+approach combines <code>systemd</code>, a Python virtual environment,
+and Nginx.</p>
+<h2 id="install-dependencies">Install Dependencies</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> python3-venv python3-pip</span></code></pre></div>
+<h2 id="create-a-virtual-environment-and-install-dependencies">Create a
+Virtual Environment and Install Dependencies</h2>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> rose-wechat-agent</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-U</span> pip</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> .env.example .env</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> .env</span></code></pre></div>
+<h2 id="manage-the-service-with-systemd">Manage the Service with
+systemd</h2>
+<h3 id="create-a-service-file">Create a Service File</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nano /etc/systemd/system/rose-wechat-agent.service</span></code></pre></div>
+<h3 id="example-service-file">Example Service File</h3>
+<p>Adjust the service entry point for the actual project. Using Uvicorn
+as an entry point is recommended when asynchronous capabilities may be
+needed later.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode ini"><code class="sourceCode ini"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[Unit]</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">Description</span><span class="ot">=</span><span class="st">Rose WeChat Agent</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="dt">After</span><span class="ot">=</span><span class="st">network.target</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">[Service]</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="dt">WorkingDirectory</span><span class="ot">=</span><span class="st">/path/to/rose-wechat-agent</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="dt">EnvironmentFile</span><span class="ot">=</span><span class="st">/path/to/rose-wechat-agent/.env</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="dt">ExecStart</span><span class="ot">=</span><span class="st">/path/to/rose-wechat-agent/.venv/bin/python /path/to/rose-wechat-agent/scripts/run_server.py</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="dt">Restart</span><span class="ot">=</span><span class="st">always</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="dt">RestartSec</span><span class="ot">=</span><span class="dv">3</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="dt">User</span><span class="ot">=</span><span class="st">www-data</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="kw">[Install]</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="dt">WantedBy</span><span class="ot">=</span><span class="st">multi-user.target</span></span></code></pre></div>
+<h2 id="start-the-service">Start the Service</h2>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable <span class="at">--now</span> rose-wechat-agent</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> journalctl <span class="at">-u</span> rose-wechat-agent <span class="at">-f</span></span></code></pre></div>
+<h2 id="use-nginx-for-reverse-proxying-and-https">Use Nginx for Reverse
+Proxying and HTTPS</h2>
+<h3 id="install-nginx">Install Nginx</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> nginx</span></code></pre></div>
+<h3 id="configure-nginx">Configure Nginx</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nano /etc/nginx/sites-available/grape</span></code></pre></div>
+<p>Add the following to the relevant <code>server</code> block:</p>
+<pre class="nginx"><code>location /rose_wechat_agent/ {
+    proxy_pass http://127.0.0.1:18008/;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Prefix /rose_wechat_agent;
+    proxy_set_header X-Script-Name /rose_wechat_agent;
+
+    proxy_buffering off;
+    proxy_read_timeout 3600s;
+}</code></pre>
+<h2 id="common-maintenance-commands">Common Maintenance Commands</h2>
+<ul>
+<li>Restart the back-end service:
+<code>sudo systemctl restart rose-wechat-agent</code></li>
+<li>View the latest service logs:
+<code>sudo journalctl -u rose-wechat-agent -n 100 --no-pager</code></li>
+<li>Restart Nginx: <code>sudo systemctl restart nginx</code></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

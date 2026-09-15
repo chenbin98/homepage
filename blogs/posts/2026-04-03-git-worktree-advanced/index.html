@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Advanced Git Worktrees for Parallel Development | Bin Chen</title>
+    <meta name="description" content="Use Git Worktrees to work on multiple branches simultaneously without repeated checkout, stash, or clone operations." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Git and DevOps · April 3, 2026</p><h1>Advanced Git Worktrees for Parallel Development</h1><p class="blog-article-summary">Use Git Worktrees to work on multiple branches simultaneously without repeated checkout, stash, or clone operations.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-04-03-git-worktree-advanced.png" alt="Advanced Git Worktrees for Parallel Development" /></figure><div class="blog-article-body"><h2 id="introduction">Introduction</h2>
+<p>Have you encountered any of these situations?</p>
+<ul>
+<li>You are midway through work on `feature/login` when an urgent bug on
+`main` needs attention.</li>
+<li>You want to compare or test features from two branches at the same
+time.</li>
+<li>You move frequently between feature branches and must run `git
+stash` every time to preserve your work.</li>
+</ul>
+<p>The traditional `git checkout` workflow requires repeated branch
+switches. It disrupts concentration and can even lead to lost work when
+changes are not stashed first.</p>
+<p><strong>Git Worktree</strong> was designed for exactly this problem:
+it lets you check out different branches of the same repository in
+<strong>multiple independent working directories</strong> and work on
+them in parallel.</p>
+<hr />
+<h2 id="what-is-git-worktree">What Is Git Worktree?</h2>
+<p>Introduced in Git 2.5+, <strong>Git Worktree</strong> lets one
+repository have multiple linked working directories. Each worktree
+checks out its own branch while sharing the repository’s `.git` object
+database.</p>
+<h3 id="traditional-workflow-vs.-worktrees">Traditional workflow
+vs. worktrees</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Directory structure</th>
+<th>Switching cost</th>
+<th>Parallel work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>`git checkout`</td>
+<td>One working directory</td>
+<td>High; often requires stashing</td>
+<td>No; one task at a time</td>
+</tr>
+<tr>
+<td>Multiple `git clone` copies</td>
+<td>Multiple independent repositories</td>
+<td>Low</td>
+<td>Yes, but wastes storage</td>
+</tr>
+<tr>
+<td><strong>Git Worktree</strong></td>
+<td>Multiple directories sharing `.git`</td>
+<td>Low</td>
+<td>Yes, efficiently shared</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="basic-usage">Basic Usage</h2>
+<h3 id="inspect-the-current-worktree-state">1. Inspect the current
+worktree state</h3>
+<p>```bash # List all worktrees git worktree list</p>
+<h1 id="example-output">Example output:</h1>
+<h1 id="usersbinprojectsmy-app-main-main">/Users/bin/projects/my-app
+main [main]</h1>
+<h1
+id="usersbinprojectsmy-app-feat-featureui-featureui">/Users/bin/projects/my-app-feat
+feature/ui [feature/ui]</h1>
+<p>```</p>
+<h3 id="create-a-new-worktree">2. Create a new worktree</h3>
+<p>```bash # General syntax git worktree add <path> <branch-name></p>
+<h1
+id="create-a-directory-for-a-feature-branch-alongside-the-primary-repository">Create
+a directory for a feature branch alongside the primary repository</h1>
+<p>git worktree add ../my-app-feature feature/ui</p>
+<h1 id="create-the-branch-automatically-when-it-does-not-exist">Create
+the branch automatically when it does not exist</h1>
+<p>git worktree add ../my-app-hotfix -b hotfix/login-bug ```</p>
+<h3 id="work-inside-the-new-directory">3. Work inside the new
+directory</h3>
+<p>```bash cd ../my-app-feature</p>
+<h1 id="this-directory-now-has-the-featureui-branch-checked-out.">This
+directory now has the feature/ui branch checked out.</h1>
+<h1
+id="you-can-edit-commit-and-push-independently-of-other-worktrees.">You
+can edit, commit, and push independently of other worktrees.</h1>
+<p>```</p>
+<h3 id="remove-a-worktree">4. Remove a worktree</h3>
+<p>```bash # Remove the worktree directory without deleting its branch
+git worktree remove ../my-app-feature</p>
+<h1 id="remove-even-when-that-worktree-has-uncommitted-changes">Remove
+even when that worktree has uncommitted changes</h1>
+<p>git worktree remove ../my-app-feature –force ```</p>
+<blockquote>
+<p><strong>Warning:</strong> `git worktree remove –force` discards
+uncommitted changes in the target directory. Review and commit, stash,
+or copy any needed work before using it.</p>
+</blockquote>
+<hr />
+<h2 id="advanced-workflows">Advanced Workflows</h2>
+<h3 id="develop-several-features-in-parallel">1. Develop several
+features in parallel</h3>
+<p><strong>Scenario:</strong> You are responsible for three features and
+need to switch among them frequently for development and testing.</p>
+<p>```bash # Keep the primary repository clean on main cd
+~/projects/my-app git checkout main</p>
+<h1 id="create-one-worktree-for-each-feature">Create one worktree for
+each feature</h1>
+<p>git worktree add ../my-app-login feature/login git worktree add
+../my-app-payment feature/payment git worktree add ../my-app-dashboard
+feature/dashboard</p>
+<h1
+id="you-can-now-develop-login-payment-and-dashboard-work-independently">You
+can now develop login, payment, and dashboard work independently,</h1>
+<h1 id="and-move-between-directories-without-stashing.">and move between
+directories without stashing.</h1>
+<p>```</p>
+<p>The resulting directory structure is straightforward:</p>
+<p>```text ~/projects/ ├── my-app/ # main branch ├── my-app-login/ #
+feature/login ├── my-app-payment/ # feature/payment └──
+my-app-dashboard/ # feature/dashboard ```</p>
+<h3 id="fix-an-urgent-bug-without-interrupting-feature-work">2. Fix an
+urgent bug without interrupting feature work</h3>
+<p><strong>Scenario:</strong> You are coding a feature when an urgent
+production issue is reported.</p>
+<p>```bash # Current feature/login work remains untouched. # Create a
+hotfix worktree from the primary repository. cd ~/projects/my-app git
+worktree add ../my-app-hotfix -b hotfix/critical-bug</p>
+<h1 id="fix-test-commit-and-push-in-the-hotfix-directory.">Fix, test,
+commit, and push in the hotfix directory.</h1>
+<p>cd ../my-app-hotfix git commit -m “fix: resolve critical login bug”
+git push origin hotfix/critical-bug</p>
+<h1 id="return-to-the-feature-worktree-when-finished.">Return to the
+feature worktree when finished.</h1>
+<p>cd ../my-app-login # The in-progress feature changes are still
+present; no stash or restore is needed. ```</p>
+<h3 id="review-and-compare-code">3. Review and compare code</h3>
+<p><strong>Scenario:</strong> You need to compare branches or review a
+colleague’s pull request.</p>
+<p>```bash # Keep the main worktree on main. cd ~/projects/my-app</p>
+<h1
+id="check-out-the-pull-request-branch-in-an-independent-directory.">Check
+out the pull-request branch in an independent directory.</h1>
+<p>git worktree add ../my-app-pr-review pr/123-new-feature</p>
+<p>cd ../my-app-pr-review npm install npm test npm run dev</p>
+<h1 id="the-main-repository-remains-available-for-comparison.">The main
+repository remains available for comparison.</h1>
+<p>cd ../my-app ```</p>
+<h3 id="debug-cicd-failures-locally">4. Debug CI/CD failures
+locally</h3>
+<p><strong>Scenario:</strong> A CI pipeline fails on a branch and you
+need a local reproduction.</p>
+<p>```bash # Create a worktree that matches the CI branch. git worktree
+add ../my-app-ci-debug ci/test-branch</p>
+<p>cd ../my-app-ci-debug</p>
+<h1
+id="clean-untracked-and-ignored-files-to-reproduce-a-clean-ci-environment.">Clean
+untracked and ignored files to reproduce a clean CI environment.</h1>
+<p>git clean -fdx</p>
+<p>npm ci npm run build npm test</p>
+<p>cd .. git worktree remove ../my-app-ci-debug ```</p>
+<blockquote>
+<p><strong>Warning:</strong> `git clean -fdx` deletes untracked and
+ignored files. Run it only in a disposable or verified worktree after
+confirming the path with `pwd` and reviewing `git clean -fdxn`
+first.</p>
+</blockquote>
+<h3 id="maintain-documentation-for-multiple-releases">5. Maintain
+documentation for multiple releases</h3>
+<p><strong>Scenario:</strong> You maintain documentation for `v1.x`,
+`v2.x`, and `main` at the same time.</p>
+<p>```bash # Use the primary repository for current development. cd
+~/projects/docs git checkout main</p>
+<h1 id="add-maintenance-worktrees-for-prior-releases.">Add maintenance
+worktrees for prior releases.</h1>
+<p>git worktree add ../docs-v1 v1.x git worktree add ../docs-v2 v2.x</p>
+<h1 id="each-version-can-now-be-edited-and-built-independently.">Each
+version can now be edited and built independently.</h1>
+<p>```</p>
+<hr />
+<h2 id="practical-tips">Practical Tips</h2>
+<h3 id="use-clear-directory-names">1. Use clear directory names</h3>
+<p>Choose names that make the purpose of each directory obvious:</p>
+<p>```bash # Clear names git worktree add ../myapp-feat-login
+feature/login git worktree add ../myapp-hotfix-bug hotfix/login-bug</p>
+<h1 id="names-to-avoid">Names to avoid</h1>
+<p>git worktree add ../temp test # Too vague git worktree add ../aaa
+main # Meaningless ```</p>
+<h3 id="return-to-the-primary-repository-quickly">2. Return to the
+primary repository quickly</h3>
+<p>```bash # Define an alias from the primary repository git config
+–global alias.main ‘worktree list | head -1 | cut -d” ” -f1’</p>
+<h1 id="or-add-a-helper-function-to-.zshrc">Or add a helper function to
+~/.zshrc:</h1>
+<p>gtm() { cd $(git worktree list | head -1 | cut -d” ” -f1); } ```</p>
+<h3 id="prune-stale-worktree-metadata">3. Prune stale worktree
+metadata</h3>
+<p>```bash # Inspect detailed worktree records git worktree list
+–porcelain</p>
+<h1 id="remove-stale-records-for-no-longer-existing-directories">Remove
+stale records for no-longer-existing directories</h1>
+<p>git worktree prune ```</p>
+<h3 id="worktrees-and-git-hooks">4. Worktrees and Git hooks</h3>
+<p>Worktrees share Git hooks by default. To use branch-specific hooks,
+override the hook path within the worktree:</p>
+<p>```bash cd ../my-app-feature git config core.hooksPath
+.git-hooks-feature ```</p>
+<hr />
+<h2 id="frequently-asked-questions">Frequently Asked Questions</h2>
+<h3 id="q1-how-does-a-worktree-differ-from-a-clone">Q1: How does a
+worktree differ from a clone?</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Worktree</th>
+<th>Clone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disk space</td>
+<td>Shares `.git` and saves space</td>
+<td>Full copy, uses more space</td>
+</tr>
+<tr>
+<td>Synchronization</td>
+<td>Shares the object database automatically</td>
+<td>Requires fetch and push</td>
+</tr>
+<tr>
+<td>Branch management</td>
+<td>Managed together</td>
+<td>Managed independently</td>
+</tr>
+<tr>
+<td>Best for</td>
+<td>Multiple branches in one repository</td>
+<td>Completely isolated environments</td>
+</tr>
+</tbody>
+</table>
+<p>Use worktrees for parallel work in one repository. Use clones when
+you need isolation, such as different Git configuration or
+credentials.</p>
+<h3 id="q2-does-a-worktree-affect-performance">Q2: Does a worktree
+affect performance?</h3>
+<ul>
+<li><strong>Disk space:</strong> It saves substantial space by sharing
+the object database.</li>
+<li><strong>Memory:</strong> Each worktree can run separate processes,
+so total process memory can increase slightly.</li>
+<li><strong>Git operations:</strong> They are generally unaffected;
+shared object lookup can be efficient.</li>
+</ul>
+<h3 id="q3-can-i-commit-in-multiple-worktrees-at-once">Q3: Can I commit
+in multiple worktrees at once?</h3>
+<p>Yes. Each worktree has its own `HEAD` and index, so commits do not
+interfere with one another. However:</p>
+<ul>
+<li>Avoid editing the <strong>same file</strong> simultaneously in
+different worktrees.</li>
+<li>Ensure branches are merged or coordinated correctly before
+pushing.</li>
+</ul>
+<h3 id="q4-does-removing-a-worktree-delete-its-branch">Q4: Does removing
+a worktree delete its branch?</h3>
+<p>No. `git worktree remove` removes only the working directory; the
+branch remains in the repository. To delete it deliberately:</p>
+<p>```bash git branch -d feature/login # Delete the local branch git
+push origin –delete feature/login # Delete the remote branch ```</p>
+<h3 id="q5-can-i-create-a-worktree-from-another-worktree">Q5: Can I
+create a worktree from another worktree?</h3>
+<p>Yes, but it is not recommended. Create worktrees from the
+<strong>primary repository</strong> to avoid confusing nested
+layouts.</p>
+<hr />
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="recommended">Recommended</h3>
+<ol type="1">
+<li><p><strong>Use a consistent layout:</strong> keep worktrees next to
+the primary repository.</p>
+<p>```text ~/projects/ ├── my-app/ # Primary repository ├──
+my-app-feat1/ # Worktree 1 └── my-app-feat2/ # Worktree 2 ```</p></li>
+<li><p><strong>Clean up promptly:</strong> prune or remove worktrees
+when their feature work is complete.</p>
+<p>```bash git worktree prune ```</p></li>
+<li><p><strong>Make intent explicit:</strong> include labels such as
+`feat`, `hotfix`, or `pr-review` in directory names.</p></li>
+<li><p><strong>Keep the primary repository clean:</strong> reserve it
+for `main` and worktree management.</p></li>
+</ol>
+<h3 id="avoid">Avoid</h3>
+<ol type="1">
+<li>Do not create nested worktrees.</li>
+<li>Do not edit the same file concurrently across worktrees.</li>
+<li>Do not forget existing worktrees; check regularly with `git worktree
+list`.</li>
+</ol>
+<hr />
+<h2 id="comparison-with-other-tools">Comparison with Other Tools</h2>
+<h3 id="git-worktree-vs.-vs-code-multi-root">Git Worktree vs. VS Code
+Multi-Root</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Worktree</th>
+<th>VS Code Multi-Root</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Branch isolation</td>
+<td>Fully isolated</td>
+<td>Same repository</td>
+</tr>
+<tr>
+<td>Disk usage</td>
+<td>Shares `.git`</td>
+<td>Shared workspace</td>
+</tr>
+<tr>
+<td>IDE support</td>
+<td>Any editor</td>
+<td>VS Code only</td>
+</tr>
+</tbody>
+</table>
+<p>The two approaches can work together: manage branches with worktrees
+and open several worktree directories in a VS Code multi-root
+workspace.</p>
+<h3 id="git-worktree-vs.-github-codespaces">Git Worktree vs. GitHub
+Codespaces</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Worktree</th>
+<th>Codespaces</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Execution location</td>
+<td>Local machine</td>
+<td>Cloud</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>Free</td>
+<td>Usage-based</td>
+</tr>
+<tr>
+<td>Network requirement</td>
+<td>Not required</td>
+<td>Required</td>
+</tr>
+<tr>
+<td>Best for</td>
+<td>Local parallel development</td>
+<td>Remote collaboration and demos</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>Git Worktree is a practical tool for parallel development, especially
+when you need to:</p>
+<ul>
+<li>develop several feature branches simultaneously;</li>
+<li>address an urgent bug without disrupting in-progress work;</li>
+<li>review code and compare branches;</li>
+<li>maintain multiple versions of code or documentation.</li>
+</ul>
+<p>Its central advantages are shared `.git` storage, no repeated
+stash-and-switch cycle, and genuinely parallel working directories. If
+you still rely on repeated `git checkout` operations to move among
+branches, Git Worktree can materially improve your workflow.</p>
+<hr />
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://git-scm.com/docs/git-worktree">Git documentation:
+git-worktree</a></li>
+<li><a
+href="https://www.atlassian.com/git/tutorials/git-worktree">Atlassian:
+Git Worktree tutorial</a></li>
+<li><a
+href="https://docs.github.com/en/get-started/using-git/checking-out-multiple-branches">GitHub
+Docs: checking out multiple branches</a></li>
+</ul>
+<p><em>Originally published April 3, 2026. Tags: Git, DevOps,
+productivity.</em></p>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

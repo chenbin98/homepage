@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Configuring Git Worktrees with Isolated Python Virtual Environments | Bin Chen</title>
+    <meta name="description" content="Give every Git worktree its own Python virtual environment to avoid dependency contamination and incorrect import paths." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Git and Python · April 12, 2026</p><h1>Configuring Git Worktrees with Isolated Python Virtual Environments</h1><p class="blog-article-summary">Give every Git worktree its own Python virtual environment to avoid dependency contamination and incorrect import paths.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-04-12-git-worktree-venv.png" alt="Configuring Git Worktrees with Isolated Python Virtual Environments" /></figure><div class="blog-article-body"><h1
+id="configuring-git-worktrees-with-isolated-python-virtual-environments">Configuring
+Git Worktrees with Isolated Python Virtual Environments</h1>
+<h2 id="problem-background">Problem Background</h2>
+<p>When <code>git worktree</code> is used for parallel development
+across branches, each worktree should have its own Python virtual
+environment.</p>
+<p>Sharing a virtual environment across worktrees can cause:</p>
+<ul>
+<li>dependency contamination when branches require different package
+versions;</li>
+<li>incorrect paths when <code>pip install -e .</code> points to another
+worktree; and</li>
+<li>difficult debugging because imported modules come from the wrong
+branch.</li>
+</ul>
+<p>This guide explains how to configure an independent virtual
+environment for every worktree.</p>
+<h2 id="core-principle">Core Principle</h2>
+<blockquote>
+<p><strong>Use worktrees to isolate code and virtual environments to
+isolate dependencies.</strong></p>
+</blockquote>
+<p>Every worktree should have:</p>
+<ul>
+<li>its own code directory;</li>
+<li>its own Python environment; and</li>
+<li>its own dependency state.</li>
+</ul>
+<h2 id="setup-steps">Setup Steps</h2>
+<h3 id="step-1-enter-the-new-worktree">Step 1: Enter the New
+Worktree</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /path/to/new/worktree</span></code></pre></div>
+<h3 id="step-2-create-an-independent-virtual-environment">Step 2: Create
+an Independent Virtual Environment</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3.12</span> <span class="at">-m</span> venv .venv</span></code></pre></div>
+<p>Notes:</p>
+<ul>
+<li><code>.venv</code> is recommended as a hidden, conventional
+directory name.</li>
+<li>Specify a Python version, such as <code>python3.12</code>, to keep
+environments consistent.</li>
+</ul>
+<h3 id="step-3-activate-the-virtual-environment">Step 3: Activate the
+Virtual Environment</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span></code></pre></div>
+<p>Use <code>direnv</code> or <code>autoenv</code> for automatic
+activation if desired.</p>
+<h3 id="step-4-initialize-dependencies">Step 4: Initialize
+Dependencies</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Upgrade pip</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-U</span> pip</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Install project requirements</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Install the current project in editable mode</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+<ul>
+<li><code>-r requirements.txt</code> installs project dependencies.</li>
+<li><code>-e .</code> installs the current project in editable mode and
+is the critical step that binds imports to this worktree.</li>
+</ul>
+<h3 id="step-5-verify-the-environment">Step 5: Verify the
+Environment</h3>
+<p>Run:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./.venv/bin/python</span> <span class="at">-</span> <span class="op">&lt;&lt;&#39;PY&#39;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="st">import inspect, your_package_name</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="st">from your_package_name.settings import SETTINGS</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="st">print(inspect.getfile(your_package_name))</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="st">print(SETTINGS.root)</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">PY</span></span></code></pre></div>
+<p>Expected results:</p>
+<ul>
+<li>The package path points to the current worktree.</li>
+<li><code>SETTINGS.root</code> points to the current worktree.</li>
+</ul>
+<p>For example:</p>
+<pre class="text"><code>/path/to/new/worktree/your_package_name/__init__.py
+/path/to/new/worktree</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="problem-1-imports-point-to-an-old-worktree">Problem 1: Imports
+Point to an Old Worktree</h3>
+<p>Symptom:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> your_package</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(your_package.<span class="va">__file__</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># /path/to/OLD/worktree/your_package/__init__.py</span></span></code></pre></div>
+<p>Causes:</p>
+<ul>
+<li>The global Python interpreter was used instead of the virtual
+environment.</li>
+<li><code>.venv</code> was not activated.</li>
+</ul>
+<p>Check:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span> python</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Expected: /path/to/new/worktree/.venv/bin/python</span></span></code></pre></div>
+<p>Repair:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+<h3 id="problem-2-settings.root-is-incorrect">Problem 2:
+<code>SETTINGS.root</code> Is Incorrect</h3>
+<p>Symptom:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(SETTINGS.root)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># /path/to/OLD/worktree</span></span></code></pre></div>
+<p>Cause:</p>
+<ul>
+<li>The project was not installed in editable mode, or it was installed
+from the wrong directory.</li>
+</ul>
+<p>Repair:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> uninstall your_package</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="ignore-virtual-environments-in-git">1. Ignore Virtual
+Environments in Git</h3>
+<p>Add this to <code>.gitignore</code>:</p>
+<pre class="gitignore"><code># Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc</code></pre>
+<h3 id="activate-automatically-with-direnv">2. Activate Automatically
+with direnv</h3>
+<p>Install <code>direnv</code>:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># macOS</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install direnv</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Add to ~/.zshrc or ~/.bashrc</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">direnv</span> hook zsh<span class="va">)</span><span class="st">&quot;</span>  <span class="co"># Or bash</span></span></code></pre></div>
+<p>Create <code>.envrc</code> at the worktree root:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;source .venv/bin/activate&quot;</span> <span class="op">&gt;</span> .envrc</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">direnv</span> allow</span></code></pre></div>
+<p>Entering the directory now activates the environment automatically;
+leaving it deactivates the environment.</p>
+<h3 id="standardize-initialization-with-a-script">3. Standardize
+Initialization with a Script</h3>
+<p>Create <code>scripts/init_worktree.sh</code>:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize a virtual environment for a new Git worktree</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-e</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Initializing worktree virtual environment...&quot;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the virtual environment</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python3.12</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Activate it</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Upgrade pip</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-U</span> pip</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Verifying environment...&quot;</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="ex">./.venv/bin/python</span> <span class="at">-c</span> <span class="st">&quot;import your_package; print(&#39;OK:&#39;, your_package.__file__)&quot;</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Initialization complete.&quot;</span></span></code></pre></div>
+<p>Use it with:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x scripts/init_worktree.sh</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/init_worktree.sh</span></span></code></pre></div>
+<h2 id="complete-workflow-example">Complete Workflow Example</h2>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Create a new worktree</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/projects/my-project</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> worktree add ../my-project-feature feature-branch</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Enter the new worktree</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ../my-project-feature</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Run the initialization script</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/init_worktree.sh</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Start development</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate  <span class="co"># If direnv is not in use</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> your_script.py</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Clean up when finished, if appropriate</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ..</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> worktree remove my-project-feature</span></code></pre></div>
+<h2 id="summary">Summary</h2>
+<p>Virtual environments are essential infrastructure for multi-branch
+development with <code>git worktree</code>.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role</th>
+<th>Key configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>git worktree</strong></td>
+<td>Code isolation</td>
+<td>Separate directory for every branch</td>
+</tr>
+<tr>
+<td><strong>venv</strong></td>
+<td>Dependency isolation</td>
+<td>Separate <code>.venv</code> in every worktree</td>
+</tr>
+<tr>
+<td><strong>pip install -e .</strong></td>
+<td>Path binding</td>
+<td>Ensures imports resolve to the current worktree</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Checklist:</strong></p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Every worktree has an independent
+<code>.venv</code>.</label></li>
+<li><label><input type="checkbox" /><code>.venv</code> is listed in
+<code>.gitignore</code>.</label></li>
+<li><label><input type="checkbox" />The project is installed with
+<code>pip install -e .</code>.</label></li>
+<li><label><input type="checkbox" />The import path points to the
+current worktree.</label></li>
+</ul>
+<p>Following these practices avoids dependency conflicts and path
+confusion in parallel branch development.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://git-scm.com/docs/git-worktree">Git Worktree
+documentation</a></li>
+<li><a href="https://docs.python.org/3/library/venv.html">Python venv
+documentation</a></li>
+<li><a href="https://direnv.net/">direnv</a></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

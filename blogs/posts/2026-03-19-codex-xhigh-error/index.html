@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fixing the Codex Unknown Variant xhigh Error | Bin Chen</title>
+    <meta name="description" content="Resolve a Codex CLI startup error caused by an unsupported reasoning-effort value in the local configuration file." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Codex Troubleshooting · March 19, 2026</p><h1>Fixing the Codex Unknown Variant xhigh Error</h1><p class="blog-article-summary">Resolve a Codex CLI startup error caused by an unsupported reasoning-effort value in the local configuration file.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-03-19-codex-xhigh-error.png" alt="Fixing the Codex Unknown Variant xhigh Error" /></figure><div class="blog-article-body"><h1 id="fixing-the-codex-unknown-variant-xhigh-error">Fixing the Codex
+Unknown Variant xhigh Error</h1>
+<h2 id="symptom">Symptom</h2>
+<p>Running <code>codex</code> in a terminal can produce the following
+error:</p>
+<pre class="text"><code>Error loading configuration: unknown variant `xhigh`, expected one of `minimal`, `low`, `medium`, `high`
+in `model_reasoning_effort`</code></pre>
+<p>This means that Codex read a value of <code>xhigh</code> for
+<code>model_reasoning_effort</code>, but the installed CLI version does
+not support that value.</p>
+<h2 id="cause">Cause</h2>
+<p>The root cause is a local Codex configuration such as:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">model_reasoning_effort</span> <span class="op">=</span> <span class="st">&quot;xhigh&quot;</span></span></code></pre></div>
+<p>while the current CLI version supports only:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">minimal</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">low</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">medium</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dt">high</span></span></code></pre></div>
+<p>In this environment, <code>xhigh</code> cannot be parsed, so startup
+fails.</p>
+<h3 id="common-trigger-conditions">Common Trigger Conditions</h3>
+<ul>
+<li>A higher reasoning-effort setting was selected previously in a
+graphical interface, IDE plugin, or another environment.</li>
+<li>That setting was written to <code>~/.codex/config.toml</code>.</li>
+<li>The terminal version of the Codex CLI does not support
+<code>xhigh</code>.</li>
+<li>Every subsequent startup then reports the same error.</li>
+</ul>
+<h2 id="solution">Solution</h2>
+<p>The repair is straightforward:</p>
+<ol type="1">
+<li>Back up the original configuration file.</li>
+<li>Replace every occurrence of <code>"xhigh"</code> with
+<code>"high"</code>.</li>
+<li>Start <code>codex</code> again.</li>
+</ol>
+<h3 id="one-command-workflow">One-Command Workflow</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Back up the configuration</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ~/.codex/config.toml ~/.codex/config.toml.bak</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Replace unsupported values</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">perl</span> <span class="at">-0pi</span> <span class="at">-e</span> <span class="st">&#39;s/&quot;xhigh&quot;/&quot;high&quot;/g&#39;</span> ~/.codex/config.toml</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Start Codex again</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">codex</span></span></code></pre></div>
+<h3 id="what-each-command-does">What Each Command Does</h3>
+<h4 id="back-up-the-configuration">Back Up the Configuration</h4>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ~/.codex/config.toml ~/.codex/config.toml.bak</span></code></pre></div>
+<p>This creates a copy of the current configuration so it can be
+restored if the edit needs to be reversed.</p>
+<h4 id="replace-unsupported-values">Replace Unsupported Values</h4>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">perl</span> <span class="at">-0pi</span> <span class="at">-e</span> <span class="st">&#39;s/&quot;xhigh&quot;/&quot;high&quot;/g&#39;</span> ~/.codex/config.toml</span></code></pre></div>
+<p>This edits <code>~/.codex/config.toml</code> in place and replaces
+all occurrences of <code>"xhigh"</code> with <code>"high"</code>,
+avoiding a manual line-by-line edit.</p>
+<h2 id="manual-inspection-and-editing">Manual Inspection and
+Editing</h2>
+<p>To check whether <code>xhigh</code> still exists in the
+configuration:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-n</span> <span class="st">&quot;xhigh&quot;</span> ~/.codex/config.toml</span></code></pre></div>
+<p>You can also open the file directly:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> ~/.codex/config.toml</span></code></pre></div>
+<p>Change settings such as:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">model_reasoning_effort</span> <span class="op">=</span> <span class="st">&quot;xhigh&quot;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="dt">plan_mode_reasoning_effort</span> <span class="op">=</span> <span class="st">&quot;xhigh&quot;</span></span></code></pre></div>
+<p>to:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">model_reasoning_effort</span> <span class="op">=</span> <span class="st">&quot;high&quot;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dt">plan_mode_reasoning_effort</span> <span class="op">=</span> <span class="st">&quot;high&quot;</span></span></code></pre></div>
+<h2 id="if-the-error-appears-again">If the Error Appears Again</h2>
+<p>If <code>~/.codex/config.toml</code> has already been changed but the
+same error persists, another configuration file may exist in the project
+directory:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./.codex/config.toml</span></span></code></pre></div>
+<p>Search both locations:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-Rn</span> <span class="st">&#39;xhigh&#39;</span> ~/.codex ./.codex <span class="dv">2</span><span class="op">&gt;</span>/dev/null</span></code></pre></div>
+<p>If project-level configuration also contains <code>xhigh</code>,
+replace it as well.</p>
+<h2 id="summary">Summary</h2>
+<p>The error does not mean that Codex itself is broken. It means that
+the configuration contains an unsupported setting:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dt">model_reasoning_effort</span> <span class="op">=</span> <span class="st">&quot;xhigh&quot;</span></span></code></pre></div>
+<p>Replacing it with <code>high</code> restores compatibility.</p>
+<h3 id="recommended-final-repair-commands">Recommended Final Repair
+Commands</h3>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> ~/.codex/config.toml ~/.codex/config.toml.bak</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">perl</span> <span class="at">-0pi</span> <span class="at">-e</span> <span class="st">&#39;s/&quot;xhigh&quot;/&quot;high&quot;/g&#39;</span> ~/.codex/config.toml</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="ex">codex</span></span></code></pre></div>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://github.com/openai/codex">Codex
+documentation</a></li>
+<li><a href="https://github.com/openai/codex#configuration">Codex
+configuration guide</a></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

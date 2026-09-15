@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connecting Codex App to Windows Server over SSH through WSL | Bin Chen</title>
+    <meta name="description" content="A practical WSL bridge for running Codex Remote on a Windows Server, including SSH service setup, port forwarding, key authentication, and troubleshooting." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">AI Tools and Infrastructure · April 26, 2026</p><h1>Connecting Codex App to Windows Server over SSH through WSL</h1><p class="blog-article-summary">A practical WSL bridge for running Codex Remote on a Windows Server, including SSH service setup, port forwarding, key authentication, and troubleshooting.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-04-26-codex-ssh-windows-wsl.png" alt="Connecting Codex App to Windows Server over SSH through WSL" /></figure><div class="blog-article-body"><h2 id="the-compatibility-problem">The Compatibility Problem</h2>
+<p>Codex App can connect to remote machines through SSH for AI-assisted
+coding. Connecting directly to a Windows Server can fail even when
+ordinary SSH works: Codex may report that /bin/sh -lc cannot execute;
+SSH opens a PowerShell session, but Codex Remote cannot start; and the
+Codex command can work in Windows PowerShell while remote startup still
+fails.</p>
+<p>The core question is how to run a tool that relies on a Linux shell
+on Windows Server. This guide uses placeholders for all hosts, users,
+and addresses.</p>
+<h2 id="why-direct-windows-ssh-is-not-enough">Why Direct Windows SSH Is
+Not Enough</h2>
+<p>Codex Remote runs remote commands in a Unix-like shell:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/sh</span> <span class="at">-lc</span> <span class="st">&quot;codex ...&quot;</span></span></code></pre></div>
+<p>Windows PowerShell and cmd use different shells, startup files,
+paths, environment-variable syntax, and process conventions.</p>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Linux / WSL</th>
+<th>Windows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default shell</td>
+<td>/bin/bash or /bin/sh</td>
+<td>powershell.exe or cmd.exe</td>
+</tr>
+<tr>
+<td>Startup files</td>
+<td>~/.bashrc and ~/.profile</td>
+<td>$PROFILE and Registry</td>
+</tr>
+<tr>
+<td>Paths</td>
+<td>/home/user/…</td>
+<td>C:...</td>
+</tr>
+<tr>
+<td>Variables</td>
+<td>export VAR=value</td>
+<td>$env:VAR=“value”</td>
+</tr>
+</tbody>
+</table>
+<p>A successful SSH login into Windows therefore does not supply the
+Unix environment required by Codex. WSL is a natural bridge.</p>
+<h2 id="architecture">Architecture</h2>
+<pre class="text"><code>Mac Codex App
+    ↓ SSH, port 2222
+Windows Server
+    ↓ port forwarding
+WSL Ubuntu, running Codex</code></pre>
+<p>SSH reaches Windows and is forwarded into Ubuntu in WSL, where Codex
+runs in its required Linux environment.</p>
+<h2 id="step-1-install-wsl">Step 1: Install WSL</h2>
+<p>In Windows PowerShell:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>wsl <span class="op">--</span>install <span class="op">-</span>d Ubuntu</span></code></pre></div>
+<p>Restart when prompted and set the Linux username and password at the
+first launch. WSL 2 is recommended:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>wsl <span class="op">--</span>set-version Ubuntu <span class="dv">2</span></span></code></pre></div>
+<h2 id="step-2-install-the-wsl-environment">Step 2: Install the WSL
+Environment</h2>
+<p>Inside the WSL terminal:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install <span class="at">-y</span> openssh-server curl</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-o-</span> https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh <span class="kw">|</span> <span class="fu">bash</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> ~/.bashrc</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ex">nvm</span> install <span class="at">--lts</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> i <span class="at">-g</span> @openai/codex</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="ex">codex</span> <span class="at">--version</span></span></code></pre></div>
+<h2 id="step-3-configure-the-wsl-ssh-service">Step 3: Configure the WSL
+SSH Service</h2>
+<p>Use a separate SSH port to avoid clashing with the Windows SSH
+service:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> sed <span class="at">-i</span> <span class="st">&#39;s/^#Port 22/Port 2222/&#39;</span> /etc/ssh/sshd_config</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> service ssh restart</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hostname</span> <span class="at">-I</span></span></code></pre></div>
+<p>Record the WSL IP address returned by hostname -I. WSL 2 addresses
+can change after restart.</p>
+<h2 id="step-4-forward-the-port-through-windows">Step 4: Forward the
+Port through Windows</h2>
+<p>Run PowerShell as Administrator and forward Windows port 2222 to WSL
+port 2222:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>netsh interface portproxy add v4tov4 listenaddress<span class="op">=</span><span class="dv">0.0</span><span class="op">.</span><span class="dv">0.0</span> listenport<span class="op">=</span><span class="dv">2222</span> connectaddress<span class="op">=&lt;</span>WSL_IP<span class="op">&gt;</span> connectport<span class="op">=</span><span class="dv">2222</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="dt">New</span><span class="op">-</span>NetFirewallRule <span class="op">-</span>DisplayName <span class="st">&quot;WSL SSH 2222&quot;</span> <span class="op">-</span>Direction Inbound <span class="op">-</span>Action Allow <span class="op">-</span>Protocol TCP <span class="op">-</span>LocalPort <span class="dv">2222</span></span></code></pre></div>
+<p>Replace the WSL IP placeholder with the address retrieved in the
+previous step. Recreate this mapping if WSL receives a new address after
+restart.</p>
+<h2 id="step-5-configure-ssh-on-macos">Step 5: Configure SSH on
+macOS</h2>
+<p>Add a host entry in the local SSH configuration:</p>
+<pre class="sshconfig"><code>Host win-wsl
+    HostName 192.168.x.x
+    User &lt;windows_user&gt;
+    Port 2222
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes</code></pre>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HostName</td>
+<td>Windows Server address</td>
+</tr>
+<tr>
+<td>User</td>
+<td>Corresponding WSL user</td>
+</tr>
+<tr>
+<td>Port</td>
+<td>2222, matching the forwarding rule</td>
+</tr>
+<tr>
+<td>IdentityFile</td>
+<td>Local private-key path</td>
+</tr>
+</tbody>
+</table>
+<h2 id="step-6-enable-key-based-login">Step 6: Enable Key-Based
+Login</h2>
+<p>Copy the public key to the WSL account:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ssh-copy-id</span> <span class="at">-i</span> ~/.ssh/id_ed25519.pub <span class="at">-p</span> 2222 <span class="op">&lt;</span>user<span class="op">&gt;</span>@192.168.x.x</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> win-wsl</span></code></pre></div>
+<p>The first command adds the key to the WSL user authorized_keys file.
+The second should open WSL without prompting for a password.</p>
+<h2 id="step-7-add-the-remote-host-in-codex-app">Step 7: Add the Remote
+Host in Codex App</h2>
+<p>Use a remote connection with:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Display Name</td>
+<td>win-wsl</td>
+</tr>
+<tr>
+<td>Host</td>
+<td><user><span class="citation"
+data-cites="192.168.x.x">@192.168.x.x</span></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>2222</td>
+</tr>
+</tbody>
+</table>
+<p>Use native WSL paths such as /home/<user>/workshop/your_project when
+adding a project. A mounted Windows path such as /mnt/d/your_project
+also works, but native WSL storage is generally faster.</p>
+<h2 id="step-8-verify">Step 8: Verify</h2>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> win-wsl</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">codex</span> <span class="at">--version</span></span></code></pre></div>
+<p>When both succeed, start the Remote connection in Codex App.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="connection-refused">Connection refused</h3>
+<p>Check the Windows port-proxy and firewall rules:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>netsh interface portproxy show all</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Get-NetFirewallRule <span class="op">-</span>DisplayName <span class="st">&quot;WSL SSH 2222&quot;</span></span></code></pre></div>
+<p>Then check SSH inside WSL:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> service ssh status</span></code></pre></div>
+<h3 id="ssh-still-asks-for-a-password">SSH still asks for a
+password</h3>
+<p>Ensure that the intended public key is in the WSL authorized_keys
+file and that the private key is available locally:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> <span class="at">-l</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-add</span> ~/.ssh/id_ed25519</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/authorized_keys</span></code></pre></div>
+<h3 id="codex-command-not-found-after-ssh-login">Codex command not found
+after SSH login</h3>
+<p>The usual cause is that nvm is not initialized in a non-interactive
+shell. Put its initialization in a login startup file such as ~/.profile
+or ~/.bash_profile:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">NVM_DIR</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.nvm&quot;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">[</span> <span class="ot">-s</span> <span class="st">&quot;</span><span class="va">$NVM_DIR</span><span class="st">/nvm.sh&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="ex">\.</span> <span class="st">&quot;</span><span class="va">$NVM_DIR</span><span class="st">/nvm.sh&quot;</span></span></code></pre></div>
+<p>Codex invokes /bin/sh -lc, so the login-shell PATH must include Node
+and Codex.</p>
+<h3 id="wsl-ip-changes-after-restart">WSL IP changes after restart</h3>
+<p>Delete the stale port proxy and recreate it with the new WSL IP:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>netsh interface portproxy delete v4tov4 listenaddress<span class="op">=</span><span class="dv">0.0</span><span class="op">.</span><span class="dv">0.0</span> listenport<span class="op">=</span><span class="dv">2222</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="dt">netsh</span> interface portproxy add v4tov4 listenaddress<span class="op">=</span><span class="dv">0.0</span><span class="op">.</span><span class="dv">0.0</span> listenport<span class="op">=</span><span class="dv">2222</span> connectaddress<span class="op">=&lt;</span>NEW_WSL_IP<span class="op">&gt;</span> connectport<span class="op">=</span><span class="dv">2222</span></span></code></pre></div>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol type="1">
+<li>Codex Remote requires a Linux-style shell; PowerShell cannot replace
+/bin/sh -lc.</li>
+<li>WSL provides the Linux bridge on Windows Server.</li>
+<li>Port forwarding carries external SSH traffic from Windows to
+WSL.</li>
+<li>Passwordless SSH is required for unattended remote operation.</li>
+<li>The PATH, including nvm-based Node installations, must be available
+in a non-interactive login shell.</li>
+</ol>
+<p>This pattern is useful for teams that have Windows servers but need
+Linux-dependent AI coding tools, unified Linux tooling, or a remote
+development environment. For more complex situations, consider WSL
+mirrored networking, a Linux virtual machine, or a fixed-IP maintenance
+script.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a
+href="https://developers.openai.com/codex/remote-connections">Codex
+Remote Connections</a></li>
+<li><a href="https://developers.openai.com/codex/cli">Codex CLI
+documentation</a></li>
+<li><a href="https://developers.openai.com/codex/windows">Codex on
+Windows</a></li>
+<li><a href="https://learn.microsoft.com/en-us/windows/wsl/">WSL
+documentation</a></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

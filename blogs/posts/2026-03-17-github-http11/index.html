@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fixing GitHub Connection Timeouts by Switching HTTP/2 to HTTP/1.1 | Bin Chen</title>
+    <meta name="description" content="Diagnose GitHub push timeouts and improve compatibility by forcing Git to use HTTP/1.1, configuring a proxy when appropriate, or moving to SSH." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Git and Networking · March 17, 2026</p><h1>Fixing GitHub Connection Timeouts by Switching HTTP/2 to HTTP/1.1</h1><p class="blog-article-summary">Diagnose GitHub push timeouts and improve compatibility by forcing Git to use HTTP/1.1, configuring a proxy when appropriate, or moving to SSH.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-03-17-github-http11.png" alt="Fixing GitHub Connection Timeouts by Switching HTTP/2 to HTTP/1.1" /></figure><div class="blog-article-body"><h1
+id="fixing-github-connection-timeouts-by-switching-http2-to-http1.1">Fixing
+GitHub Connection Timeouts by Switching HTTP/2 to HTTP/1.1</h1>
+<h2 id="problem-background">Problem Background</h2>
+<p>While running <code>git push</code> to GitHub, a connection timeout
+occurred:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">fatal:</span> unable to access <span class="st">&#39;https://github.com/chenbin98/meteo_data_download.git/&#39;</span>:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Failed</span> to connect to github.com port 443 after 75003 ms: Couldn<span class="st">&#39;t connect to server</span></span></code></pre></div>
+<p>The connection failed after approximately 75 seconds, so the code
+could not be pushed. This problem can occur in some network
+environments, particularly when GitHub is accessed over HTTPS.</p>
+<h2 id="diagnosis">Diagnosis</h2>
+<h3 id="check-basic-network-connectivity">1. Check Basic Network
+Connectivity</h3>
+<p>First verify that the network itself is available.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Test whether GitHub is reachable</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> https://github.com</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Check DNS resolution</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ping</span> <span class="at">-c</span> 2 github.com</span></code></pre></div>
+<p><strong>Result:</strong> the network path and DNS resolution were
+functioning, so this was not a basic connectivity failure.</p>
+<h3 id="check-git-configuration">2. Check Git Configuration</h3>
+<p>Check for proxy settings or other Git configuration issues:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check proxy settings</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> <span class="at">--get</span> http.proxy</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> <span class="at">--get</span> https.proxy</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Check SSL verification</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> <span class="at">--get</span> http.sslVerify</span></code></pre></div>
+<p><strong>Result:</strong> no proxy was configured and SSL verification
+was enabled by default.</p>
+<h3 id="inspect-the-git-connection-in-detail">3. Inspect the Git
+Connection in Detail</h3>
+<p>Use verbose logging to inspect the failure:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">GIT_CURL_VERBOSE</span><span class="op">=</span>1 <span class="fu">git</span> ls-remote origin <span class="dv">2</span><span class="op">&gt;&amp;</span><span class="dv">1</span> <span class="kw">|</span> <span class="fu">tail</span> <span class="at">-30</span></span></code></pre></div>
+<p><strong>Key observations:</strong></p>
+<ul>
+<li>SSL certificate verification succeeded.</li>
+<li>The connection was established, but timed out after the request was
+sent.</li>
+<li>The diagnostic output included
+<code>Error in the HTTP/2 framing layer</code>.</li>
+</ul>
+<p><strong>Conclusion:</strong> the problem occurred at the HTTP/2
+protocol layer. GitHub HTTP/2 traffic can be unstable in some network
+environments.</p>
+<h2 id="solutions">Solutions</h2>
+<h3 id="option-1-disable-http2-and-use-http1.1">Option 1: Disable HTTP/2
+and Use HTTP/1.1</h3>
+<p>Git commonly uses HTTP/2. Forcing HTTP/1.1 can improve
+compatibility.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Force Git to use HTTP/1.1 globally</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.version HTTP/1.1</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Increase the buffer for large pushes</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.postBuffer 524288000</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Disable low-speed limits to avoid interrupting slow connections</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.lowSpeedLimit 0</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.lowSpeedTime 9999</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Push again</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">--set-upstream</span> origin main</span></code></pre></div>
+<p><strong>Why this helps:</strong></p>
+<ul>
+<li><code>http.version HTTP/1.1</code> forces HTTP/1.1 and avoids HTTP/2
+compatibility issues.</li>
+<li><code>http.postBuffer 524288000</code> configures a 500 MB buffer
+for large pushes.</li>
+<li><code>http.lowSpeedLimit 0</code> disables the low-speed cutoff that
+can interrupt a slow connection.</li>
+</ul>
+<p>In this case, the push succeeded after applying these settings.</p>
+<h3 id="option-2-configure-a-proxy">Option 2: Configure a Proxy</h3>
+<p>If an authorized local proxy is already available, Git can use it for
+the connection.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify the proxy port; common values include 7890, 1087, and 6153</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Set Git proxy values</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.proxy http://127.0.0.1:7890</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> https.proxy http://127.0.0.1:7890</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Push</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">--set-upstream</span> origin main</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove proxy values when no longer needed</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> <span class="at">--unset</span> http.proxy</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> <span class="at">--unset</span> https.proxy</span></code></pre></div>
+<h3 id="option-3-use-ssh-for-long-term-use">Option 3: Use SSH for
+Long-Term Use</h3>
+<p>SSH is often more stable than HTTPS and does not require repeatedly
+entering credentials after setup.</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. View an existing SSH public key</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/id_ed25519.pub</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Generate a key if one does not exist</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-C</span> <span class="st">&quot;your_email@example.com&quot;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Add the public key to GitHub</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Visit https://github.com/settings/keys and select &quot;New SSH key&quot;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Test SSH connectivity</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-T</span> git@github.com</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Switch the remote to SSH</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> remote set-url origin git@github.com:chenbin98/meteo_data_download.git</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Push</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">--set-upstream</span> origin main</span></code></pre></div>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>No repeated password entry.</li>
+<li>More stable connectivity.</li>
+<li>No dependence on HTTPS proxy behavior.</li>
+</ul>
+<h2 id="common-git-remote-commands">Common Git Remote Commands</h2>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View remotes</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> remote <span class="at">-v</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Set upstream and push</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">--set-upstream</span> origin main</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Later pushes after upstream is set</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull remote updates</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> pull</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect current branch tracking</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> branch <span class="at">-vv</span></span></code></pre></div>
+<h2 id="troubleshooting-flow">Troubleshooting Flow</h2>
+<pre class="text"><code>git push fails
+    │
+    ▼
+Check network: curl/ping github.com
+    │
+    ├── unreachable → check network or proxy
+    │
+    ▼ reachable
+Check Git configuration: git config --get http.proxy
+    │
+    ├── proxy present → confirm it is correct
+    │
+    ▼ no proxy
+Detailed diagnostic: GIT_CURL_VERBOSE=1 git ls-remote origin
+    │
+    ├── SSL failure → check certificate or system time
+    ├── HTTP/2 error → switch to HTTP/1.1
+    └── authentication failure → check credentials or SSH keys</code></pre>
+<h2 id="comparison-of-options">Comparison of Options</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Option</th>
+<th>Strength</th>
+<th>Limitation</th>
+<th>Best use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HTTP/1.1</strong></td>
+<td>Simple and immediate</td>
+<td>HTTPS authentication may still be required</td>
+<td>Short-term repair</td>
+</tr>
+<tr>
+<td><strong>Proxy</strong></td>
+<td>Reaches blocked resources</td>
+<td>Depends on local proxy stability</td>
+<td>Environments with an authorized proxy</td>
+</tr>
+<tr>
+<td><strong>SSH</strong></td>
+<td>Stable and credential-friendly</td>
+<td>Requires SSH-key setup</td>
+<td>Recommended for long-term use</td>
+</tr>
+</tbody>
+</table>
+<h2 id="summary">Summary</h2>
+<p>The central repair commands are:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.version HTTP/1.1</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.postBuffer 524288000</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.lowSpeedLimit 0</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> http.lowSpeedTime 9999</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">--set-upstream</span> origin main</span></code></pre></div>
+<p>For long-term work, configure an SSH key and switch the remote to SSH
+for a more stable connection experience.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://git-scm.com/docs/git-config">Git configuration
+documentation</a></li>
+<li><a
+href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh">GitHub
+SSH connection guide</a></li>
+<li><a href="https://gist.github.com/demurgos/9f6f7d0e0d2a6e7e37c0">Git
+proxy configuration notes</a></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

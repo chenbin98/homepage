@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Restoring Google API and Earth Engine Access from Mainland China Servers | Bin Chen</title>
+    <meta name="description" content="A diagnostic and proxy-based workflow for a mainland-China Ubuntu server that cannot directly reach Google OAuth or Earth Engine services." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Cloud and Operations · March 16, 2026</p><h1>Restoring Google API and Earth Engine Access from Mainland China Servers</h1><p class="blog-article-summary">A diagnostic and proxy-based workflow for a mainland-China Ubuntu server that cannot directly reach Google OAuth or Earth Engine services.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-03-16-server-google-access.png" alt="Restoring Google API and Earth Engine Access from Mainland China Servers" /></figure><div class="blog-article-body"><h1
+id="restoring-google-api-and-earth-engine-access-from-mainland-china-servers">Restoring
+Google API and Earth Engine Access from Mainland China Servers</h1>
+<h2 id="problem-background">Problem Background</h2>
+<p>While deploying a service on an Ubuntu 22.04 cloud server in mainland
+China, Google API and Earth Engine (GEE) endpoints could not be
+reached.</p>
+<p><strong>Server environment:</strong></p>
+<ul>
+<li>Cloud platform: Alibaba Cloud ECS</li>
+<li>Region: Southwest China 1 (Chengdu)</li>
+<li>Operating system: Ubuntu 22.04</li>
+<li>Application dependencies: Google OAuth and the Earth Engine API</li>
+</ul>
+<p><strong>Observed symptom:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://oauth2.googleapis.com/token</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># timeout or connection reset</span></span></code></pre></div>
+<h2 id="diagnosis">Diagnosis</h2>
+<h3 id="test-github-connectivity">Test GitHub Connectivity</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> https://github.com</span></code></pre></div>
+<p>Result:</p>
+<pre class="text"><code>HTTP/2 200</code></pre>
+<p>This result shows that the server can reach some external
+websites.</p>
+<h3 id="test-google-connectivity">Test Google Connectivity</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> https://google.com</span></code></pre></div>
+<p>Result:</p>
+<pre class="text"><code>Connection reset / timeout</code></pre>
+<p>This confirms that the mainland-China server cannot directly reach
+Google services.</p>
+<h2 id="solution-strategy">Solution Strategy</h2>
+<p>The overall strategy is to deploy a proxy client on the server and
+forward traffic for Google APIs through a proxy node.</p>
+<pre class="text"><code>Server
+   ↓
+Local proxy (sing-box)
+   ↓
+Proxy node (hysteria2)
+   ↓
+Google API / GEE</code></pre>
+<h2 id="solution">Solution</h2>
+<h3 id="install-sing-box">1. Install sing-box</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsSL</span> https://sing-box.app/install.sh <span class="kw">|</span> <span class="fu">bash</span></span></code></pre></div>
+<h3 id="configure-a-subscription-or-outbound">2. Configure a
+Subscription or Outbound</h3>
+<p>Edit the configuration file:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> /etc/sing-box/config.json</span></code></pre></div>
+<p>Add an outbound using the hysteria2 protocol. Replace every
+placeholder with values from an authorized service provider; never
+publish an actual subscription token or password.</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;outbounds&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;type&quot;</span><span class="fu">:</span> <span class="st">&quot;hysteria2&quot;</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tag&quot;</span><span class="fu">:</span> <span class="st">&quot;node1&quot;</span><span class="fu">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;server&quot;</span><span class="fu">:</span> <span class="st">&quot;your.server.com&quot;</span><span class="fu">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;server_port&quot;</span><span class="fu">:</span> <span class="dv">443</span><span class="fu">,</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;your_password&quot;</span><span class="fu">,</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tls&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;server_name&quot;</span><span class="fu">:</span> <span class="st">&quot;your.server.com&quot;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<blockquote>
+<p><strong>Security note:</strong> If a subscription token has ever been
+exposed publicly, regenerate it in the provider console to prevent
+unauthorized traffic use.</p>
+</blockquote>
+<h3 id="start-the-service">3. Start the Service</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Enable at boot</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl enable sing-box</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Start the service</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl start sing-box</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect status</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl status sing-box</span></code></pre></div>
+<h3 id="set-system-proxy-variables">4. Set System Proxy Variables</h3>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add proxy environment variables</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&#39;export HTTP_PROXY=http://127.0.0.1:7890&#39;</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&#39;export HTTPS_PROXY=http://127.0.0.1:7890&#39;</span> <span class="op">&gt;&gt;</span> ~/.bashrc</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply immediately</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> ~/.bashrc</span></code></pre></div>
+<h3 id="verify-connectivity">5. Verify Connectivity</h3>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-I</span> https://google.com</span></code></pre></div>
+<p>Successful output may look like:</p>
+<pre class="text"><code>HTTP/2 200</code></pre>
+<p>or:</p>
+<pre class="text"><code>HTTP/2 404</code></pre>
+<p>A 404 response is not necessarily a failure; it can mean that the API
+root path has no resource.</p>
+<h3 id="test-earth-engine">6. Test Earth Engine</h3>
+<p>Run an Earth Engine program again:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> gee_test.py</span></code></pre></div>
+<p>If the following errors no longer occur, the problem has likely been
+resolved:</p>
+<ul>
+<li><code>connection timeout</code></li>
+<li><code>connection reset</code></li>
+<li><code>token refresh failed</code></li>
+</ul>
+<h2 id="final-architecture">Final Architecture</h2>
+<pre class="text"><code>Application (Python/GEE)
+     ↓
+HTTP_PROXY (127.0.0.1:7890)
+     ↓
+sing-box proxy
+     ↓
+Hysteria2 node
+     ↓
+Google OAuth / Earth Engine API</code></pre>
+<h2 id="key-components">Key Components</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role</th>
+<th>Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>sing-box</strong></td>
+<td>Proxy client</td>
+<td>7890</td>
+</tr>
+<tr>
+<td><strong>hysteria2</strong></td>
+<td>Proxy protocol</td>
+<td>443</td>
+</tr>
+<tr>
+<td><strong>HTTP_PROXY</strong></td>
+<td>System proxy environment variable</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="common-questions">Common Questions</h2>
+<h3 id="q1-why-does-sing-box-fail-to-start">Q1: Why does sing-box fail
+to start?</h3>
+<p>Check configuration syntax:</p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">sing-box</span> check <span class="at">-c</span> /etc/sing-box/config.json</span></code></pre></div>
+<p>View service logs:</p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> journalctl <span class="at">-u</span> sing-box <span class="at">-f</span></span></code></pre></div>
+<h3 id="q2-why-is-the-proxy-slow">Q2: Why is the proxy slow?</h3>
+<ul>
+<li>Check proxy-node load.</li>
+<li>Try another authorized node.</li>
+<li>Check server bandwidth limits.</li>
+</ul>
+<h3 id="q3-why-can-a-python-program-still-not-connect">Q3: Why can a
+Python program still not connect?</h3>
+<p>Confirm that the environment variables are active:</p>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="va">$HTTP_PROXY</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="va">$HTTPS_PROXY</span></span></code></pre></div>
+<p>Or set them explicitly in Python:</p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">&#39;HTTP_PROXY&#39;</span>] <span class="op">=</span> <span class="st">&#39;http://127.0.0.1:7890&#39;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">&#39;HTTPS_PROXY&#39;</span>] <span class="op">=</span> <span class="st">&#39;http://127.0.0.1:7890&#39;</span></span></code></pre></div>
+<h3 id="q4-why-can-a-docker-container-not-connect">Q4: Why can a Docker
+container not connect?</h3>
+<p><strong>Option 1:</strong> Set the proxy inside the container.</p>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ENV</span> HTTP_PROXY=http://127.0.0.1:7890</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ENV</span> HTTPS_PROXY=http://127.0.0.1:7890</span></code></pre></div>
+<p><strong>Option 2:</strong> Use host networking.</p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--network</span> host your_image</span></code></pre></div>
+<h2 id="summary">Summary</h2>
+<p><strong>Root cause:</strong></p>
+<pre class="text"><code>A mainland-China server cannot directly reach Google API endpoints.</code></pre>
+<p><strong>Resolution path:</strong></p>
+<pre class="text"><code>Deploy a proxy client on the server
+→ forward traffic through an authorized node
+→ reach Google and GEE endpoints</code></pre>
+<p><strong>Key advantages:</strong></p>
+<ul>
+<li>Stable, high-performance proxy client</li>
+<li>Relatively simple setup</li>
+<li>System-level proxy support for multiple applications</li>
+<li>Friendly to SSH-based server administration</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://sing-box.app/">sing-box documentation</a></li>
+<li><a href="https://hysteria.network/">Hysteria2 documentation</a></li>
+<li><a
+href="https://developers.google.com/earth-engine/tutorials/community/python-users-guide">Google
+Earth Engine Python API</a></li>
+<li><a href="https://help.aliyun.com/document_detail/25473.html">Alibaba
+Cloud ECS network configuration</a></li>
+</ul>
+<blockquote>
+<p>This article is a general reference for reaching GEE from a
+mainland-China server. Ensure that any proxy configuration complies with
+applicable laws, institutional policy, and service terms.</p>
+</blockquote>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

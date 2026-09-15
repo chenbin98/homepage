@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Installing and Updating Local Python Packages | Bin Chen</title>
+    <meta name="description" content="A practical workflow for building, installing, updating, and debugging local Python packages with conda and pip." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Python · June 8, 2025</p><h1>Installing and Updating Local Python Packages</h1><p class="blog-article-summary">A practical workflow for building, installing, updating, and debugging local Python packages with conda and pip.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2025-06-08-local-python-packages.png" alt="Installing and Updating Local Python Packages" /></figure><div class="blog-article-body"><h1 id="installing-and-updating-local-python-packages">Installing and
+Updating Local Python Packages</h1>
+<p>This guide explains how to build, install, and update a local Python
+package, with the <code>cbgeo</code> package as an example.</p>
+<h2 id="standard-installation-workflow">Standard Installation
+Workflow</h2>
+<h3 id="build-the-package">1. Build the Package</h3>
+<p>First, build the package from the base environment in the
+<code>cbgeo</code> directory:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> activate base</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> setup.py sdist bdist_wheel</span></code></pre></div>
+<h3 id="install-the-package">2. Install the Package</h3>
+<p>Install the generated package with <code>pip</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install dist/cbgeo_pkg-0.1.0-py3-none-any.whl</span></code></pre></div>
+<h3 id="update-the-package">3. Update the Package</h3>
+<p>If an installed package needs to be updated, use
+<code>--force-reinstall</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install dist/cbgeo_pkg-0.1.0-py3-none-any.whl <span class="at">--force-reinstall</span></span></code></pre></div>
+<h2 id="a-temporary-or-development-installation">A Temporary or
+Development Installation</h2>
+<p>When a package is needed only temporarily, use the following
+workflow.</p>
+<ol type="1">
+<li>Create a new conda environment if needed:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">-n</span> myenv python=3.x</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> activate myenv</span></code></pre></div>
+<ol start="2" type="1">
+<li>Move to the directory that contains <code>setup.py</code>:</li>
+</ol>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/package/directory</span></code></pre></div>
+<ol start="3" type="1">
+<li>Install directly with <code>pip</code>:</li>
+</ol>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Make sure that <code>wheel</code> and <code>setuptools</code> are
+installed.</li>
+<li>Use <code>-e</code> for an editable development installation, which
+is convenient for debugging and iteration.</li>
+<li>Check Python-version compatibility before installing.</li>
+<li>Prefer a virtual environment so that the system Python installation
+is not affected.</li>
+</ul>
+<h2 id="common-problems">Common Problems</h2>
+<p>If installation fails, try the following steps.</p>
+<ol type="1">
+<li>Clean build files:</li>
+</ol>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> build/ dist/ <span class="pp">*</span>.egg-info/</span></code></pre></div>
+<ol start="2" type="1">
+<li>Rebuild and reinstall:</li>
+</ol>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> setup.py clean <span class="at">--all</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> setup.py sdist bdist_wheel</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

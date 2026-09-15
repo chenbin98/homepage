@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Downloading Global Raster Data from Google Earth Engine with Geemap | Bin Chen</title>
+    <meta name="description" content="A complete, restartable workflow for downloading large Google Earth Engine raster datasets by grid and mosaicking the resulting tiles." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Google Earth Engine · September 1, 2025</p><h1>Downloading Global Raster Data from Google Earth Engine with Geemap</h1><p class="blog-article-summary">A complete, restartable workflow for downloading large Google Earth Engine raster datasets by grid and mosaicking the resulting tiles.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2025-09-01-geemap-raster-download.png" alt="Downloading Global Raster Data from Google Earth Engine with Geemap" /></figure><div class="blog-article-body"><h1
+id="downloading-global-raster-data-from-google-earth-engine-with-geemap">Downloading
+Global Raster Data from Google Earth Engine with Geemap</h1>
+<h2 id="overview">Overview</h2>
+<p>This technical note provides a complete workflow for using the Python
+library <code>geemap</code> to download large raster datasets, including
+global products, from Google Earth Engine (GEE). It addresses common
+challenges such as GEE pixel limits and interrupted downloads, then
+mosaics the downloaded tiles into a complete dataset.</p>
+<p>The workflow applies to most GEE raster datasets, such as MODIS and
+Landsat. Adapt it by changing the dataset ID, resolution, time range,
+and related parameters.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="software-and-libraries">Software and libraries</h3>
+<p>Install the following tools and libraries.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tool or library</th>
+<th>Purpose</th>
+<th>Installation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Python</strong></td>
+<td>Core programming environment</td>
+<td>Download from <a href="https://python.org/">python.org</a></td>
+</tr>
+<tr>
+<td><strong><code>geemap</code></strong></td>
+<td>GEE visualization and data downloading</td>
+<td><code>pip install geemap</code></td>
+</tr>
+<tr>
+<td><strong><code>earthengine-api</code> (<code>ee</code>)</strong></td>
+<td>GEE Python API</td>
+<td><code>pip install earthengine-api</code></td>
+</tr>
+<tr>
+<td><strong><code>geopandas</code></strong></td>
+<td>Reads vector grid data for tiled downloads</td>
+<td><code>pip install geopandas</code></td>
+</tr>
+<tr>
+<td><strong><code>rasterio</code></strong></td>
+<td>Raster processing and mosaicking</td>
+<td><code>pip install rasterio</code></td>
+</tr>
+<tr>
+<td><strong>GDAL</strong></td>
+<td>Raster-processing backend with multithreading</td>
+<td>Included with <code>rasterio</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> After installing <code>earthengine-api</code>,
+authenticate with <code>earthengine authenticate</code>.</p>
+</blockquote>
+<h3 id="data-preparation">Data preparation</h3>
+<ul>
+<li><strong>GEE raster dataset ID:</strong> identify the target dataset
+ID in GEE.
+<ul>
+<li>Example NPP dataset: <code>MODIS/061/MOD17A3HGF</code></li>
+<li>Example Landsat 8 dataset: <code>LANDSAT/LC08/C02/T1_L2</code></li>
+</ul></li>
+<li><strong>Global vector grid:</strong> prepare a pre-segmented vector
+grid in GeoPackage (<code>.gpkg</code>) format.
+<ul>
+<li>Divide the global study area into smaller downloadable tiles.</li>
+<li>Example: <code>WorldFishnet.gpkg</code>; grid size can be customized
+to the data resolution.</li>
+</ul></li>
+</ul>
+<h2 id="step-1-initialize-the-environment-and-preview-the-data">Step 1:
+Initialize the Environment and Preview the Data</h2>
+<h3 id="load-libraries">Load libraries</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> ee</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> geemap</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> geopandas <span class="im">as</span> gpd</span></code></pre></div>
+<h3 id="authenticate-and-initialize-gee">Authenticate and initialize
+GEE</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Authenticate with GEE (run once; skip if already authenticated)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># ee.Authenticate()</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize the GEE API</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>ee.Initialize()</span></code></pre></div>
+<h3 id="load-and-preprocess-gee-data">Load and preprocess GEE data</h3>
+<h4 id="define-core-parameters">Define core parameters</h4>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Customize these parameters for the target dataset</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>GEE_DATA_ID <span class="op">=</span> <span class="st">&quot;MODIS/061/MOD17A3HGF&quot;</span>  <span class="co"># Example: MODIS NPP dataset</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>BAND_NAME <span class="op">=</span> <span class="st">&quot;Npp&quot;</span>                       <span class="co"># Target band name</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>TIME_RANGE <span class="op">=</span> [<span class="st">&quot;2001-01-01&quot;</span>, <span class="st">&quot;2025-01-01&quot;</span>]  <span class="co"># Time range (start, end)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>SCALING_FACTOR <span class="op">=</span> <span class="fl">0.0001</span>                 <span class="co"># Converts GEE values to physical values</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualization parameters</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>VIS_PARAMS <span class="op">=</span> {</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;min&quot;</span>: <span class="dv">0</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;max&quot;</span>: <span class="dv">3</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;palette&quot;</span>: [</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;ffffff&quot;</span>, <span class="st">&quot;ce7e45&quot;</span>, <span class="st">&quot;df923d&quot;</span>, <span class="st">&quot;f1b555&quot;</span>, <span class="st">&quot;fcd163&quot;</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;99b718&quot;</span>, <span class="st">&quot;74a901&quot;</span>, <span class="st">&quot;66a000&quot;</span>, <span class="st">&quot;529400&quot;</span>, <span class="st">&quot;3e8601&quot;</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;207401&quot;</span>, <span class="st">&quot;056201&quot;</span>, <span class="st">&quot;004c00&quot;</span>, <span class="st">&quot;023b01&quot;</span>, <span class="st">&quot;012e01&quot;</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;011d01&quot;</span>, <span class="st">&quot;011301&quot;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    ]  <span class="co"># Adjust for the value range of the selected dataset</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h4 id="load-and-preprocess-the-data">Load and preprocess the data</h4>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the GEE image collection</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>image_collection <span class="op">=</span> ee.ImageCollection(GEE_DATA_ID)<span class="op">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    .filterDate(TIME_RANGE[<span class="dv">0</span>], TIME_RANGE[<span class="dv">1</span>])<span class="op">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    .select(BAND_NAME)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a function that applies the scaling factor</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> apply_scaling(image):</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> image.multiply(SCALING_FACTOR)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply scaling to the collection</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>scaled_collection <span class="op">=</span> image_collection.<span class="bu">map</span>(apply_scaling)</span></code></pre></div>
+<h3 id="preview-the-data-in-geemap">Preview the data in Geemap</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize the geemap interface</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>Map <span class="op">=</span> geemap.Map(center<span class="op">=</span>(<span class="dv">40</span>, <span class="dv">100</span>), zoom<span class="op">=</span><span class="dv">4</span>)  <span class="co"># Centered on Eurasia</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Mosaic the collection into one image for preview; use median or mean for time series</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>preview_image <span class="op">=</span> scaled_collection.median()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the image to the map</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>Map.addLayer(preview_image, VIS_PARAMS, <span class="ss">f&quot;</span><span class="sc">{</span>GEE_DATA_ID<span class="sc">.</span>split(<span class="st">&#39;/&#39;</span>)[<span class="op">-</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">_Preview&quot;</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Add a color-bar legend</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>Map.add_colorbar_branca(</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    colors<span class="op">=</span>VIS_PARAMS[<span class="st">&quot;palette&quot;</span>],</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    vmin<span class="op">=</span>VIS_PARAMS[<span class="st">&quot;min&quot;</span>],</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    vmax<span class="op">=</span>VIS_PARAMS[<span class="st">&quot;max&quot;</span>],</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    label<span class="op">=</span>BAND_NAME,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    position<span class="op">=</span><span class="st">&quot;bottomright&quot;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the map; run in Jupyter Notebook or Lab for an interactive view</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>Map</span></code></pre></div>
+<h2 id="step-2-tiled-downloading-with-resume-support">Step 2: Tiled
+Downloading with Resume Support</h2>
+<p>Directly downloading global high-resolution data, for example at 500
+m, can exceed GEE pixel limits. Use a vector grid to split the data into
+downloadable tiles. The following workflow skips files that already
+exist, so a later run can resume an interrupted download.</p>
+<h3 id="define-download-parameters">Define download parameters</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># File paths; customize these values</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>GRID_PATH <span class="op">=</span> <span class="st">&quot;I:/geemap/roi/WorldFishnet.gpkg&quot;</span>  <span class="co"># Vector grid path</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>GRID_LAYER <span class="op">=</span> <span class="st">&quot;WorldFish30&quot;</span>                       <span class="co"># Layer name in the GeoPackage</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>OUTPUT_DIR <span class="op">=</span> <span class="st">&quot;I:/geemap/GEE_Global_Data/&quot;</span>        <span class="co"># Directory for downloaded tiles</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>RESOLUTION <span class="op">=</span> <span class="dv">500</span>                                  <span class="co"># Dataset resolution in metres</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>BATCH_SIZE <span class="op">=</span> <span class="dv">5</span>                                    <span class="co"># Number of grid tiles per batch</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>START_YEAR <span class="op">=</span> <span class="dv">2001</span>                                 <span class="co"># Resume from this year after interruption</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>START_GRID_INDEX <span class="op">=</span> <span class="dv">0</span>                              <span class="co"># Resume from this grid index after interruption</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>CRS <span class="op">=</span> <span class="st">&quot;EPSG:4326&quot;</span>                                <span class="co"># Target coordinate reference system (WGS84)</span></span></code></pre></div>
+<h3 id="load-the-vector-grid-and-create-an-output-directory">Load the
+vector grid and create an output directory</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the vector grid with geopandas</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>grid_gdf <span class="op">=</span> gpd.read_file(GRID_PATH, layer<span class="op">=</span>GRID_LAYER)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the GeoDataFrame to a GEE FeatureCollection</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>grid_ee <span class="op">=</span> geemap.gdf_to_ee(grid_gdf)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the output directory if needed</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>os.makedirs(OUTPUT_DIR, exist_ok<span class="op">=</span><span class="va">True</span>)</span></code></pre></div>
+<h3 id="download-batches-with-resume-support">Download batches with
+resume support</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtain the list of years from the time range</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>years <span class="op">=</span> <span class="bu">range</span>(<span class="bu">int</span>(TIME_RANGE[<span class="dv">0</span>].split(<span class="st">&quot;-&quot;</span>)[<span class="dv">0</span>]), <span class="bu">int</span>(TIME_RANGE[<span class="dv">1</span>].split(<span class="st">&quot;-&quot;</span>)[<span class="dv">0</span>]))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Iterate through years</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> year <span class="kw">in</span> years:</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Skip years before the resume point</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> year <span class="op">&lt;</span> START_YEAR:</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Processing data for </span><span class="sc">{</span>year<span class="sc">}</span><span class="ss">...&quot;</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract annual data</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    annual_image <span class="op">=</span> scaled_collection<span class="op">\</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        .<span class="bu">filter</span>(ee.Filter.calendarRange(year, year, <span class="st">&quot;year&quot;</span>))<span class="op">\</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        .median()</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get the total number of grid tiles</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    total_grids <span class="op">=</span> grid_ee.size().getInfo()</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate the number of batches</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    num_batches <span class="op">=</span> (total_grids <span class="op">-</span> START_GRID_INDEX <span class="op">+</span> BATCH_SIZE <span class="op">-</span> <span class="dv">1</span>) <span class="op">//</span> BATCH_SIZE</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Process each batch</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> batch <span class="kw">in</span> <span class="bu">range</span>(num_batches):</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        batch_start <span class="op">=</span> START_GRID_INDEX <span class="op">+</span> batch <span class="op">*</span> BATCH_SIZE</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        batch_end <span class="op">=</span> <span class="bu">min</span>(batch_start <span class="op">+</span> BATCH_SIZE, total_grids)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        current_batch <span class="op">=</span> grid_ee.toList(BATCH_SIZE, batch_start)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Process each grid tile in the batch</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(batch_end <span class="op">-</span> batch_start):</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Obtain the current feature and its geometry</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>            grid_feature <span class="op">=</span> ee.Feature(current_batch.get(i))</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>            grid_geom <span class="op">=</span> grid_feature.geometry()</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Create a unique output filename</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>            grid_index <span class="op">=</span> batch_start <span class="op">+</span> i <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>            filename <span class="op">=</span> <span class="ss">f&quot;</span><span class="sc">{</span>BAND_NAME<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>year<span class="sc">}</span><span class="ss">_grid_</span><span class="sc">{</span>grid_index<span class="sc">:04d}</span><span class="ss">.tif&quot;</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>            file_path <span class="op">=</span> os.path.join(OUTPUT_DIR, filename)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Skip an existing file to support resume behavior</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> os.path.exists(file_path):</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f&quot;Skipping existing file: </span><span class="sc">{</span>filename<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Download the clipped image</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">try</span>:</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>                <span class="co"># Clip the annual image to the current grid tile</span></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>                clipped_image <span class="op">=</span> annual_image.clip(grid_geom)</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>                <span class="co"># Download with geemap</span></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>                geemap.download_ee_image(</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>                    image<span class="op">=</span>clipped_image,</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>                    filename<span class="op">=</span>file_path,</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>                    scale<span class="op">=</span>RESOLUTION,</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>                    region<span class="op">=</span>grid_geom,</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>                    crs<span class="op">=</span>CRS,</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>                    max_tile_size<span class="op">=</span><span class="dv">1024</span>  <span class="co"># Adjust for available memory</span></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f&quot;Downloaded successfully: </span><span class="sc">{</span>filename<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>            <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f&quot;Download failed for </span><span class="sc">{</span>filename<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Reset the grid index for the next year</span></span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>    START_GRID_INDEX <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;All download tasks completed.&quot;</span>)</span></code></pre></div>
+<h2 id="step-3-mosaic-the-downloaded-tiles">Step 3: Mosaic the
+Downloaded Tiles</h2>
+<p>Use <code>rasterio</code> and GDAL multithreading to mosaic tiles
+into one complete raster for each year.</p>
+<h3 id="define-mosaic-parameters">Define mosaic parameters</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># File paths; customize these values</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>INPUT_DIR <span class="op">=</span> OUTPUT_DIR                    <span class="co"># Same directory used for downloaded tiles</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>MOSAIC_OUTPUT_DIR <span class="op">=</span> <span class="st">&quot;I:/geemap/GEE_Global_Data/Mosaicked/&quot;</span>  <span class="co"># Directory for mosaics</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>COMPRESSION <span class="op">=</span> <span class="st">&quot;LZW&quot;</span>                       <span class="co"># Compression method to reduce file size</span></span></code></pre></div>
+<h3 id="enable-gdal-multithreading">Enable GDAL multithreading</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Enable GDAL multithreading to accelerate mosaicking</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">&quot;GDAL_NUM_THREADS&quot;</span>] <span class="op">=</span> <span class="st">&quot;ALL_CPUS&quot;</span>  <span class="co"># Use all available CPUs</span></span></code></pre></div>
+<h3 id="mosaic-annual-files">Mosaic annual files</h3>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> rasterio.merge <span class="im">import</span> merge</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> rasterio.enums <span class="im">import</span> Resampling</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the mosaic output directory</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>os.makedirs(MOSAIC_OUTPUT_DIR, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Group tiled files by year</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>file_pattern <span class="op">=</span> re.<span class="bu">compile</span>(<span class="vs">rf&quot;</span><span class="sc">{</span>BAND_NAME<span class="sc">}</span><span class="vs">_</span><span class="kw">(</span><span class="dv">\d</span><span class="ch">{{</span><span class="op">4</span><span class="ch">}}</span><span class="kw">)</span><span class="vs">_grid_</span><span class="dv">\d</span><span class="ch">{{</span><span class="op">4</span><span class="ch">}}\.</span><span class="vs">tif</span><span class="dv">$</span><span class="vs">&quot;</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>yearly_files <span class="op">=</span> {}</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> filename <span class="kw">in</span> os.listdir(INPUT_DIR):</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    match <span class="op">=</span> file_pattern.match(filename)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> match:</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        year <span class="op">=</span> match.group(<span class="dv">1</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        file_path <span class="op">=</span> os.path.join(INPUT_DIR, filename)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        yearly_files.setdefault(year, []).append(file_path)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Mosaic files for each year</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> year, file_list <span class="kw">in</span> yearly_files.items():</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Mosaicking </span><span class="sc">{</span><span class="bu">len</span>(file_list)<span class="sc">}</span><span class="ss"> files for </span><span class="sc">{</span>year<span class="sc">}</span><span class="ss">...&quot;</span>)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    datasets <span class="op">=</span> []</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Open all tiled files</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> file_path <span class="kw">in</span> file_list:</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>            src <span class="op">=</span> rasterio.<span class="bu">open</span>(file_path)</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>            datasets.append(src)</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Perform the mosaic</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>        mosaic_array, out_transform <span class="op">=</span> merge(</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>            datasets,</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>            resampling<span class="op">=</span>Resampling.nearest  <span class="co"># Use nearest-neighbour resampling for discrete data</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Update mosaic metadata</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>        out_meta <span class="op">=</span> datasets[<span class="dv">0</span>].meta.copy()</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>        out_meta.update({</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;driver&quot;</span>: <span class="st">&quot;GTiff&quot;</span>,</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;height&quot;</span>: mosaic_array.shape[<span class="dv">1</span>],</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;width&quot;</span>: mosaic_array.shape[<span class="dv">2</span>],</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;transform&quot;</span>: out_transform,</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;compress&quot;</span>: COMPRESSION,</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;bigtiff&quot;</span>: <span class="st">&quot;YES&quot;</span>  <span class="co"># Enable for large files greater than 4 GB</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Save the mosaic</span></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>        output_path <span class="op">=</span> os.path.join(MOSAIC_OUTPUT_DIR, <span class="ss">f&quot;</span><span class="sc">{</span>BAND_NAME<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>year<span class="sc">}</span><span class="ss">_Global.tif&quot;</span>)</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> rasterio.<span class="bu">open</span>(output_path, <span class="st">&quot;w&quot;</span>, <span class="op">**</span>out_meta) <span class="im">as</span> dest:</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>            dest.write(mosaic_array)</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Mosaic created successfully: </span><span class="sc">{</span>output_path<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Mosaic failed for </span><span class="sc">{</span>year<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">str</span>(e)<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">finally</span>:</span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Close all open raster datasets to release memory</span></span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> ds <span class="kw">in</span> datasets:</span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a>            ds.close()</span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;All mosaicking tasks completed.&quot;</span>)</span></code></pre></div>
+<h2 id="notes-and-troubleshooting">Notes and Troubleshooting</h2>
+<h3 id="common-issues">Common issues</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GEE authentication error</strong></td>
+<td>Run <code>ee.Authenticate()</code> again and follow the browser
+authentication prompts.</td>
+</tr>
+<tr>
+<td><strong>Interrupted download</strong></td>
+<td>The workflow skips existing files, so run the download script again
+to resume.</td>
+</tr>
+<tr>
+<td><strong>Memory overload</strong></td>
+<td>Reduce <code>BATCH_SIZE</code>, for example from 5 to 3, or reduce
+<code>max_tile_size</code>, for example from 1024 to 512.</td>
+</tr>
+<tr>
+<td><strong>Mosaic failure</strong></td>
+<td>Confirm that all tiles use the same CRS and resolution.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="customization-tips">Customization tips</h3>
+<ul>
+<li><p><strong>Non-annual data:</strong> modify the time filter for
+monthly or seasonal data.</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: summer data</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>ee.Filter.calendarRange(year, year, <span class="st">&quot;year&quot;</span>)<span class="op">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  .<span class="bu">filter</span>(ee.Filter.calendarRange(<span class="dv">6</span>, <span class="dv">8</span>, <span class="st">&quot;month&quot;</span>))</span></code></pre></div></li>
+<li><p><strong>Different datasets:</strong> update
+<code>GEE_DATA_ID</code>, <code>BAND_NAME</code>,
+<code>SCALING_FACTOR</code>, and <code>VIS_PARAMS</code>.</p></li>
+<li><p><strong>Grid adjustment:</strong> use coarser or finer grids
+according to the data resolution, for example 10° × 10° or 5° ×
+5°.</p></li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><strong><code>geemap</code> documentation:</strong> <a
+href="https://geemap.org/">geemap.org</a></li>
+<li><strong>GEE Python API documentation:</strong> <a
+href="https://developers.google.com/earth-engine/guides/python_install">developers.google.com/earth-engine</a></li>
+<li><strong><code>rasterio</code> mosaic guide:</strong> <a
+href="https://rasterio.readthedocs.io/en/latest/topics/merge.html">rasterio.readthedocs.io</a></li>
+<li><strong>MODIS MOD17A3HGF dataset:</strong> <a
+href="https://developers.google.com/earth-engine/datasets/catalog/MODIS_061_MOD17A3HGF">GEE
+MOD17A3HGF documentation</a></li>
+</ul>
+<blockquote>
+<p>This workflow is suitable for most GEE raster datasets and can be
+adjusted and optimized for a specific use case.</p>
+</blockquote>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

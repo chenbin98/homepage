@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A Codex Skill Toolkit for Agricultural Research: Remote Sensing, Modeling, Figures, and Literature | Bin Chen</title>
+    <meta name="description" content="A practical reference for selecting and combining 13 Codex skills for agricultural remote sensing, modeling, figures, literature search, and scientific writing." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Research Workflow · September 2, 2026</p><h1>A Codex Skill Toolkit for Agricultural Research: Remote Sensing, Modeling, Figures, and Literature</h1><p class="blog-article-summary">A practical reference for selecting and combining 13 Codex skills for agricultural remote sensing, modeling, figures, literature search, and scientific writing.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-09-02-codex-agriculture-research-skills.png" alt="A Codex Skill Toolkit for Agricultural Research: Remote Sensing, Modeling, Figures, and Literature" /></figure><div class="blog-article-body"><h2 id="the-challenge">The Challenge</h2>
+<p>Agricultural research routinely spans several distinct workflows:
+acquiring Sentinel or Landsat imagery, analyzing vectors and rasters,
+organizing field-trial data, building yield models, creating paper
+figures, searching literature, and drafting manuscripts.</p>
+<p>Codex skills provide task-specific workflows, but a growing skill
+library produces three common problems:</p>
+<ol type="1">
+<li>forgetting the exact skill name;</li>
+<li>not knowing whether overlapping skills should be used alone or
+together;</li>
+<li>confusing a workflow instruction with installed Python, GIS, or
+external-service dependencies.</li>
+</ol>
+<p>This guide organizes 13 core skills across spatial remote sensing,
+agricultural modeling, figures, literature discovery, and scientific
+writing. It also provides prompts that can be adapted directly.</p>
+<h2 id="skills-are-workflows-not-installed-software">Skills Are
+Workflows, Not Installed Software</h2>
+<p>A skill consists of SKILL.md plus related scripts, references, and
+templates. It tells Codex when a workflow applies, what sequence to use,
+which risks to inspect, and what quality standard to meet.</p>
+<p>Installing geomaster does not install GDAL, Rasterio, GeoPandas,
+Earth Engine, PyTorch, or every spatial package in every project.
+Likewise, installing a scikit-learn skill does not place scikit-learn in
+every Python environment. Dependencies still need to be installed,
+versioned, and locked within the actual project environment.</p>
+<p>This separation is beneficial: a skill can be reused globally while
+project dependencies remain isolated and reproducible.</p>
+<p>Codex may infer an applicable skill from a request, but complex tasks
+benefit from explicit names:</p>
+<pre class="text"><code>Use geomaster, geopandas, and scientific-visualization:
+audit the projection of this Sentinel-2 field dataset, calculate NDVI,
+summarize by field, and create a publication-ready spatial distribution figure.</code></pre>
+<p>A direct skill invocation is also useful:</p>
+<pre class="text"><code>$paper-lookup Search 2021–2026 studies of rice methane emissions and yield synergies.
+Record databases, query strings, dates, DOI, and open-full-text status.</code></pre>
+<p>Do not invoke every skill for every task. Select one primary workflow
+and add only one to three supporting skills for checking, modeling, or
+delivery.</p>
+<h2 id="quick-selection-table">Quick Selection Table</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Current task</th>
+<th>Primary skill</th>
+<th>Common companion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Remote sensing, rasters, STAC, GEE, spatial ML</td>
+<td>geomaster</td>
+<td>geopandas, scientific-visualization</td>
+</tr>
+<tr>
+<td>Vectors, CRS, joins, overlays, geometry repair</td>
+<td>geopandas</td>
+<td>geomaster</td>
+</tr>
+<tr>
+<td>Pre-model data structure and quality inspection</td>
+<td>exploratory-data-analysis</td>
+<td>statistical-analysis</td>
+</tr>
+<tr>
+<td>Treatment comparisons, tests, effects, power</td>
+<td>statistical-analysis</td>
+<td>statsmodels</td>
+</tr>
+<tr>
+<td>Yield prediction, classification, regression, CV</td>
+<td>scikit-learn</td>
+<td>exploratory-data-analysis</td>
+</tr>
+<tr>
+<td>Coefficient inference, GLM, mixed models, ARIMA</td>
+<td>statsmodels</td>
+<td>statistical-analysis</td>
+</tr>
+<tr>
+<td>Phenology series, time-series classification, change points</td>
+<td>aeon</td>
+<td>scikit-learn, geomaster</td>
+</tr>
+<tr>
+<td>Publication multi-panel figures and delivery audit</td>
+<td>scientific-visualization</td>
+<td>matplotlib</td>
+</tr>
+<tr>
+<td>Fine control of axes, layout, artists, formats</td>
+<td>matplotlib</td>
+<td>scientific-visualization</td>
+</tr>
+<tr>
+<td>Papers, DOIs, citation links, open access</td>
+<td>paper-lookup</td>
+<td>academic-research-suite</td>
+</tr>
+<tr>
+<td>Deep research, review, manuscript or experiment planning</td>
+<td>academic-research-suite</td>
+<td>paper-lookup, scientific-writing</td>
+</tr>
+<tr>
+<td>Evidence-grounded drafting and manuscript audit</td>
+<td>scientific-writing</td>
+<td>scientific-critical-thinking</td>
+</tr>
+<tr>
+<td>Causal overreach, confounding, bias, evidence strength</td>
+<td>scientific-critical-thinking</td>
+<td>statistical-analysis, scientific-writing</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spatial-remote-sensing-geomaster-and-geopandas">Spatial Remote
+Sensing: geomaster and geopandas</h2>
+<h3 id="geomaster">geomaster</h3>
+<p>Geomaster is the broad entrance point for Sentinel, Landsat, MODIS,
+SAR, hyperspectral data, raster and vector operations, spectral indices,
+terrain analysis, spatial statistics, point clouds, networks, and
+geospatial machine learning. It also covers cloud-native workflows such
+as STAC, Cloud-Optimized GeoTIFF, and Planetary Computer.</p>
+<p>Use it when a task combines data acquisition, image processing, and
+spatial modeling:</p>
+<pre class="text"><code>Use geomaster to design a Sentinel-2 time-series workflow for a rice-growing region.
+First verify the data source, cloud mask, spatial resolution, and time window.
+Then calculate NDVI and EVI, and return reproducible STAC queries and raster-processing code.
+Do not assume all dependencies are installed; report the environment check first.</code></pre>
+<h3 id="geopandas">geopandas</h3>
+<p>GeoPandas focuses on correct Python vector-data analysis. It
+emphasizes CRS semantics, suitable projections for distance and area,
+invalid geometry, antimeridian issues, spatial joins, overlay, clip,
+dissolve, and GeoPackage, Arrow, and PostGIS I/O.</p>
+<p>Use it when the central question is whether a vector result is
+correct:</p>
+<pre class="text"><code>Use geopandas to audit the spatial join between field polygons and sampling points.
+Check CRS, coordinate extent, invalid geometry, and duplicate features first.
+Use an appropriate projected CRS for area calculation.
+Report the audit before modifying or overwriting original data.</code></pre>
+<p>In short, geomaster handles an end-to-end geospatial route; geopandas
+handles precise vector implementation and correctness checks.</p>
+<h2 id="agricultural-modeling-from-data-audit-to-inference">Agricultural
+Modeling: From Data Audit to Inference</h2>
+<h3 id="exploratory-data-analysis">exploratory-data-analysis</h3>
+<p>This skill supports controlled local EDA before modeling:
+inventories, field types, missingness, outliers, leakage, transformation
+sensitivity, and analysis-report scaffolds. It does not automatically
+remove outliers, impute values, normalize data, or overwrite source
+files.</p>
+<pre class="text"><code>Use exploratory-data-analysis to inspect this rice-yield and greenhouse-gas dataset.
+Create a file and field inventory, then report missingness, duplicates, outlier ranges,
+potential label leakage, and grouping structure.
+Do not impute, drop rows, or modify the source data automatically.</code></pre>
+<h3 id="statistical-analysis">statistical-analysis</h3>
+<p>Use this skill to decide <strong>which statistical method</strong>
+fits the design. It covers test selection, normality and variance
+checks, nonparametric alternatives, effects, confidence intervals, power
+analysis, regression diagnostics, and Bayesian alternatives.</p>
+<pre class="text"><code>Use statistical-analysis to compare yield, CH4, and N2O among irrigation treatments.
+Choose tests from the experimental design, check assumptions, and report effect sizes and confidence intervals.
+Distinguish statistical significance from agricultural practical significance; do not report p-values alone.</code></pre>
+<h3 id="scikit-learn">scikit-learn</h3>
+<p>This skill is for predictive supervised learning, clustering,
+dimension reduction, preprocessing, cross-validation, and hyperparameter
+selection. Its key safeguards are to put preprocessing inside a
+Pipeline, fit transforms only on training data, and specify seeds and
+metrics to reduce data leakage.</p>
+<pre class="text"><code>Use scikit-learn to build a baseline rice-yield prediction model.
+Put imputation, categorical encoding, and scaling inside a Pipeline.
+Design validation by site and year to avoid spatial and temporal leakage.
+Compare a linear baseline with tree models, and save seeds and evaluation metrics.</code></pre>
+<h3 id="statsmodels">statsmodels</h3>
+<p>Statsmodels is appropriate where parameter estimates, standard
+errors, confidence intervals, residual diagnostics, or coefficient
+tables matter. It includes OLS, WLS, GLM, discrete models, and time
+series. Prefer it when the goal is explanation and inference rather than
+predictive accuracy alone.</p>
+<pre class="text"><code>Use statsmodels to analyze yield responses across sites and seasons.
+Explain the response distribution and model-family choice; check residuals, heteroscedasticity, and collinearity.
+Report coefficients, 95% confidence intervals, and robustness analyses.
+If random effects are required, verify support for the intended structure first.</code></pre>
+<h3 id="aeon">aeon</h3>
+<p>Aeon specializes in time-series machine learning: classification,
+regression, clustering, forecasting, anomaly detection, segmentation,
+similarity search, and time-series distances. It is a strong match for
+crop phenology curves, remote-sensing index series, sensor sequences,
+and change points.</p>
+<pre class="text"><code>Use aeon to classify phenological stages from multi-field NDVI time series.
+Check sequence length, sampling interval, missing observations, and label definitions first.
+Establish a simple baseline before time-series algorithms.
+Validate by field or year so one field never appears in both training and testing.</code></pre>
+<h2
+id="publication-figures-scientific-visualization-and-matplotlib">Publication
+Figures: scientific-visualization and matplotlib</h2>
+<h3 id="scientific-visualization">scientific-visualization</h3>
+<p>Scientific-visualization governs how evidence should be communicated:
+honest encodings, uncertainty and missingness, color and grayscale
+checks, multi-panel layouts, output dimensions, metadata, and
+journal-targeted export checks. It should not hide points, connect
+missing observations, or alter data merely to make a figure
+prettier.</p>
+<pre class="text"><code>Use scientific-visualization to redesign this treatment-effect figure.
+Target a double-column multi-panel figure; preserve individual observations, sample sizes,
+uncertainty, and missing-data information. Check color-blind and grayscale legibility.
+Export SVG, PDF, and 600-dpi PNG, then read them back to verify dimensions and fonts.</code></pre>
+<h3 id="matplotlib">matplotlib</h3>
+<p>Matplotlib provides implementation control: Figure and Axes objects,
+subplot mosaic, GridSpec, axes, annotations, legends, styles, and
+PNG/PDF/SVG export. Prefer the object-oriented interface for complex
+figures and keep data calculations separate from plotting functions.</p>
+<pre class="text"><code>Use matplotlib with the object-oriented interface to implement this figure.
+Separate data calculations from plotting functions, use subplot_mosaic for panels,
+standardize fonts, line widths, and colors, and provide a standalone export script.</code></pre>
+<p>Scientific-visualization sets the evidence and delivery standard;
+matplotlib implements the details.</p>
+<h2 id="literature-and-writing-discovery-evidence-and-audit">Literature
+and Writing: Discovery, Evidence, and Audit</h2>
+<h3 id="paper-lookup">paper-lookup</h3>
+<p>Paper-lookup can query multiple scholarly services for topic search,
+DOI/PMID/arXiv lookup, citation relations, and open-access locations. It
+requires recording search terms, databases, dates, identifiers, and
+result counts. It also checks for silent cases where an HTTP response is
+successful but the returned content is not.</p>
+<p>It does not replace sources such as CNKI or institution-authenticated
+Web of Science access.</p>
+<pre class="text"><code>Use paper-lookup to search 2020–2026 studies of rice-water management, yield, CH4, and N2O.
+Define scope and choose suitable databases; do not query every source indiscriminately.
+Deduplicate by DOI and record query, date, database, hit count, and open-full-text status.
+Return candidates for my inclusion decision rather than deciding final inclusion yourself.</code></pre>
+<h3 id="academic-research-suite">academic-research-suite</h3>
+<p>This independent research suite routes requests to deep research,
+manuscript writing, peer review, full research-to-paper workflows, or
+experimental planning. Use only the appropriate route, rather than
+loading the entire suite.</p>
+<pre class="text"><code>ars-lit-review: conduct a literature search and evidence synthesis on rice-methane mitigation and yield trade-offs.
+First state the research question, search scope, and evidence gaps. Do not invent missing citations.</code></pre>
+<pre class="text"><code>ars-plan: based on confirmed research questions, result tables, and a literature matrix,
+plan the argumentative structure of an agriculture-and-environment manuscript.</code></pre>
+<h3 id="scientific-writing">scientific-writing</h3>
+<p>Use scientific-writing to draft, revise, and audit text from
+established evidence. It distinguishes drafting, source verification,
+and author approval; it checks consistency between methods and results,
+bindings between citations and claims, reporting standards, author
+responsibility, AI disclosure, data statements, and open-science
+content.</p>
+<pre class="text"><code>Use scientific-writing to revise this Results section.
+Use only the supplied tables, figures, and verified literature.
+Do not add facts or references that do not exist.
+Check sample size, units, effect direction, significance, and figure numbers, and mark unverifiable claims as unverified.</code></pre>
+<h3 id="scientific-critical-thinking">scientific-critical-thinking</h3>
+<p>Scientific-critical-thinking assesses study design, confounding,
+bias, statistical validity, and evidence strength. It is a useful
+adversarial review step, but it does not replace domain experts or
+author judgment.</p>
+<pre class="text"><code>Use scientific-critical-thinking to review this claim:
+“Intermittent irrigation can always increase yield and reduce greenhouse-gas emissions in every rice-growing region.”
+Separate direct evidence, plausible inference, and overreach. Inspect representativeness, confounding, outcome definitions, and alternative explanations.</code></pre>
+<h2 id="four-useful-skill-combinations">Four Useful Skill
+Combinations</h2>
+<h3 id="remote-sensing-yield-prediction">Remote-sensing yield
+prediction</h3>
+<pre class="text"><code>Use geomaster, geopandas, exploratory-data-analysis, scikit-learn, and scientific-visualization
+to create a Sentinel-2 and meteorological yield-prediction workflow.
+Audit spatial extent, time window, CRS, missingness, and leakage first; then build a baseline model.
+Finally deliver publication-ready figures with uncertainty and mapped error.</code></pre>
+<h3 id="agricultural-field-trial-analysis">Agricultural field-trial
+analysis</h3>
+<pre class="text"><code>Use exploratory-data-analysis, statistical-analysis, statsmodels, and scientific-critical-thinking
+for a multi-site, multi-season trial. Preserve raw values and missingness, explain fixed and random effects,
+check assumptions, effects, confidence intervals, and limits on external validity.</code></pre>
+<h3 id="crop-phenology-time-series">Crop-phenology time series</h3>
+<pre class="text"><code>Use geomaster, aeon, scikit-learn, and scientific-visualization to analyze multi-year NDVI or EVI series
+and identify key phenological stages. Group validation by year and field; report missing-data treatment,
+temporal alignment, baseline performance, generalization error, and failure cases.</code></pre>
+<h3 id="literature-review-and-manuscript-writing">Literature review and
+manuscript writing</h3>
+<pre class="text"><code>Use paper-lookup, academic-research-suite, scientific-critical-thinking, and scientific-writing.
+First build a reproducible search record and candidate-paper table. After I decide abstract and full-text inclusion,
+synthesize the evidence and draft the manuscript. Bind every key claim to verified evidence.</code></pre>
+<h2 id="inspecting-installation-and-version-state">Inspecting
+Installation and Version State</h2>
+<p>Skills are commonly held in a user-level Codex skills directory:</p>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> ~/.codex/skills</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sed</span> <span class="at">-n</span> <span class="st">&#39;1,25p&#39;</span> ~/.codex/skills/geomaster/SKILL.md</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sed</span> <span class="at">-n</span> <span class="st">&#39;1,25p&#39;</span> ~/.codex/skills/paper-lookup/SKILL.md</span></code></pre></div>
+<p>A bulk presence check for this toolkit:</p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> skill <span class="kw">in</span> <span class="dt">\</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  geomaster geopandas exploratory-data-analysis statistical-analysis <span class="dt">\</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  scikit-learn statsmodels aeon scientific-visualization matplotlib <span class="dt">\</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  paper-lookup academic-research-suite scientific-writing <span class="dt">\</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  scientific-critical-thinking<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="bu">test</span> <span class="at">-f</span> <span class="st">&quot;</span><span class="va">$HOME</span><span class="st">/.codex/skills/</span><span class="va">$skill</span><span class="st">/SKILL.md&quot;</span> <span class="dt">\</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="bu">echo</span> <span class="st">&quot;OK  </span><span class="va">$skill</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">||</span> <span class="bu">echo</span> <span class="st">&quot;MISS </span><span class="va">$skill</span><span class="st">&quot;</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+<p>After skill updates, start a new Codex task so the current list and
+descriptions enter the session. Do not install every library globally
+just to satisfy all skill examples. Enter the relevant project and use
+its dependency manager, such as uv or conda, to install only the needed
+packages.</p>
+<h2 id="summary">Summary</h2>
+<p>Remember the 13 skills along four lines:</p>
+<ul>
+<li><strong>Spatial remote sensing:</strong> geomaster manages the whole
+geospatial route; geopandas safeguards vector correctness.</li>
+<li><strong>Agricultural modeling:</strong> exploratory-data-analysis
+audits data; statistical-analysis selects methods; scikit-learn
+predicts; statsmodels infers; aeon handles time series.</li>
+<li><strong>Figures:</strong> scientific-visualization governs evidence
+expression and audit; matplotlib controls implementation.</li>
+<li><strong>Literature and writing:</strong> paper-lookup finds
+evidence; academic-research-suite organizes research; scientific-writing
+creates the manuscript; scientific-critical-thinking tests the boundary
+of conclusions.</li>
+</ul>
+<p>The everyday rule is simple: choose one primary skill, add a small
+number of supporting skills, and state inputs, outputs, prohibited
+actions, and validation requirements in the prompt.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a
+href="https://github.com/K-Dense-AI/scientific-agent-skills">Scientific
+Agent Skills</a></li>
+<li><a href="https://agentskills.io/">Agent Skills
+specification</a></li>
+</ul>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

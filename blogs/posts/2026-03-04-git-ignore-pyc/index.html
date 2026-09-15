@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ignoring Python .pyc Files with Git | Bin Chen</title>
+    <meta name="description" content="A cross-platform .gitignore workflow for hiding Python bytecode and cache directories without deleting local files." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Git and Python · March 4, 2026</p><h1>Ignoring Python .pyc Files with Git</h1><p class="blog-article-summary">A cross-platform .gitignore workflow for hiding Python bytecode and cache directories without deleting local files.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-03-04-git-ignore-pyc.png" alt="Ignoring Python .pyc Files with Git" /></figure><div class="blog-article-body"><h1 id="ignoring-python-.pyc-files-with-git">Ignoring Python .pyc Files
+with Git</h1>
+<h2 id="problem">Problem</h2>
+<p>When <code>git status</code> is run in a Python repository, a large
+number of generated <code>.pyc</code> files and <code>__pycache__</code>
+directories can appear as modified or untracked files. These artifacts
+make version-control output noisy. Permanent <code>.gitignore</code>
+rules keep them out of routine Git status checks.</p>
+<h2 id="applicable-environment">Applicable Environment</h2>
+<ul>
+<li>Operating systems: Windows (PowerShell), Linux, and macOS</li>
+<li>Git: version 2.0 or later</li>
+<li>Project type: Python project</li>
+</ul>
+<h2 id="solution">Solution</h2>
+<h3 id="locate-the-repository-root">Locate the Repository Root</h3>
+<p>Open a terminal and move to the root directory of the Git
+repository.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Windows PowerShell</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> F:<span class="dt">\r</span>ice_planthoppers_shift</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Linux/macOS</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /path/to/rice_planthoppers_shift</span></code></pre></div>
+<h3 id="create-or-edit-.gitignore">Create or Edit
+<code>.gitignore</code></h3>
+<p>On Windows PowerShell, open the file with Notepad:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>notepad <span class="op">.</span><span class="fu">gitignore</span></span></code></pre></div>
+<p>On Linux or macOS, open it with Vim:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vim</span> .gitignore</span></code></pre></div>
+<p>Add the following rules. They cover the essential Python bytecode
+exclusions together with common optional exclusions.</p>
+<pre class="gitignore"><code># --------------------------
+# Python bytecode
+# --------------------------
+*.pyc
+__pycache__/
+
+# --------------------------
+# Common Python project exclusions
+# --------------------------
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging and build outputs
+dist/
+build/
+*.egg-info/
+
+# Test cache
+.pytest_cache/
+
+# IDE configuration
+.vscode/</code></pre>
+<h3 id="stop-tracking-files-that-git-already-knows-about">Stop Tracking
+Files That Git Already Knows About</h3>
+<p>If <code>.pyc</code> files or <code>__pycache__</code> directories
+have already been committed, <code>.gitignore</code> alone will not stop
+Git from tracking them. Remove them from the Git index only; this does
+not remove local files.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove tracked .pyc files from the index</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> rm <span class="at">--cached</span> <span class="pp">**</span>/<span class="pp">*</span>.pyc</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove tracked __pycache__ directories from the index</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> rm <span class="at">--cached</span> <span class="at">-r</span> <span class="pp">**</span>/__pycache__</span></code></pre></div>
+<h3 id="commit-the-.gitignore-rules">Commit the <code>.gitignore</code>
+Rules</h3>
+<p>Stage and commit the new rules so the entire team receives them.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add .gitignore</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;feat: add .gitignore rules for Python bytecode and __pycache__&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin main</span></code></pre></div>
+<h3 id="verify-the-result">Verify the Result</h3>
+<p>Run:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status</span></code></pre></div>
+<p>Expected result: <code>.pyc</code> files and <code>__pycache__</code>
+directories no longer appear under modified or untracked files.</p>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>

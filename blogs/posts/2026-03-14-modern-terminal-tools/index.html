@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A Beginner Guide to Modern Terminal Tools: Ghostty, Yazi, Lazygit, and Zoxide | Bin Chen</title>
+    <meta name="description" content="Install, configure, and combine four modern terminal tools for keyboard-first development on macOS." />
+    <link rel="icon" href="../../../image/mine/favicon.ico" type="image/x-icon" />
+    <script>(() => { try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme; } catch {} })();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../../css/styles.css" />
+    <script defer src="../../../js/main.js"></script>
+  </head>
+  <body class="blogs-page">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+  <nav class="nav shell" aria-label="Main navigation">
+    <a class="brand" href="../../../" aria-label="Home"><img class="brand-logo brand-logo-day" src="../../../image/mine/chenbin_Logo.png" alt="" /><img class="brand-logo brand-logo-night" src="../../../image/mine/chenbin_Logo.png" alt="" /><span class="brand-name">Bin Chen</span></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu">
+      <a href="../../../"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Home</span></a>
+      <a href="../../../about/"><i class="fa-solid fa-user" aria-hidden="true"></i><span>About</span></a>
+      <a href="../../../publications/"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Publications</span></a>
+      <a href="../../../projects/"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span></a>
+      <a href="../../" aria-current="page"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i><span>Blogs</span></a>
+      <a href="../../../news/"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span>News</span></a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode"><i class="fa-solid fa-moon" aria-hidden="true"></i><span class="theme-toggle-label">Dark</span></button>
+    </div>
+  </nav>
+</header>
+    <main id="main"><section class="page-hero compact-page-hero shell blog-article-hero"><p class="eyebrow">Developer Tools · March 14, 2026</p><h1>A Beginner Guide to Modern Terminal Tools: Ghostty, Yazi, Lazygit, and Zoxide</h1><p class="blog-article-summary">Install, configure, and combine four modern terminal tools for keyboard-first development on macOS.</p><div class="blog-language-switch"><a href="../../">All English posts</a><a href="../../../zh/blogs/">中文博客索引</a></div></section><article class="shell blog-article"><figure class="blog-article-cover"><img src="../../../image/blogs/2026-03-14-modern-terminal-tools.png" alt="A Beginner Guide to Modern Terminal Tools: Ghostty, Yazi, Lazygit, and Zoxide" /></figure><div class="blog-article-body"><h1
+id="a-beginner-guide-to-modern-terminal-tools-ghostty-yazi-lazygit-and-zoxide">A
+Beginner Guide to Modern Terminal Tools: Ghostty, Yazi, Lazygit, and
+Zoxide</h1>
+<h2 id="why-use-these-tools">Why Use These Tools?</h2>
+<p>Traditional terminal commands such as <code>cd</code>,
+<code>ls</code>, and <code>git status</code> are powerful but can feel
+basic. The four tools in this guide bring GUI-like usability to the
+terminal while remaining SSH-friendly and lightweight.</p>
+<p><strong>Core advantages:</strong></p>
+<ul>
+<li>Faster performance through Rust, Zig, Go, and GPU acceleration</li>
+<li>A modern appearance with themes, transparency, and ligature
+fonts</li>
+<li>A keyboard-first workflow that keeps hands on the keyboard</li>
+<li>Composability through pipes, scripts, and automation</li>
+</ul>
+<h2 id="tool-overview">Tool Overview</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Category</th>
+<th>Role</th>
+<th>Replaces or complements</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ghostty</strong></td>
+<td>Terminal emulator</td>
+<td>Provides the terminal window</td>
+<td>iTerm2, Terminal.app</td>
+</tr>
+<tr>
+<td><strong>Yazi</strong></td>
+<td>File manager</td>
+<td>Browses and manages files</td>
+<td><code>ls</code> + <code>cd</code> + <code>cat</code></td>
+</tr>
+<tr>
+<td><strong>Lazygit</strong></td>
+<td>Git interface</td>
+<td>Visualizes Git operations</td>
+<td><code>git status/diff/add</code></td>
+</tr>
+<tr>
+<td><strong>Zoxide</strong></td>
+<td>Directory navigation</td>
+<td>Learns frequently used directories</td>
+<td><code>cd</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="installation-on-macos">Installation on macOS</h2>
+<h3 id="install-homebrew-if-needed">1. Install Homebrew if Needed</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">&quot;</span></span></code></pre></div>
+<h3 id="install-all-tools">2. Install All Tools</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Terminal emulator</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install <span class="at">--cask</span> ghostty</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Terminal tools</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install zoxide lazygit yazi</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Font with icon support</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install <span class="at">--cask</span> jetbrains-mono-nerd-font</span></code></pre></div>
+<h3 id="initialize-configuration-directories">3. Initialize
+Configuration Directories</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> ~/.config/ghostty ~/.config/yazi ~/.config/lazygit</span></code></pre></div>
+<h2 id="configuration-details">Configuration Details</h2>
+<h3 id="configure-ghostty">Configure Ghostty</h3>
+<p>Edit <code>~/.config/ghostty/config</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Font settings</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">font-family</span> <span class="op">=</span> <span class="st">&quot;JetBrainsMono Nerd Font&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="dt">font-size</span> <span class="op">=</span> <span class="dv">13</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Theme: Catppuccin Mocha, a dark low-glare theme</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="dt">theme</span> <span class="op">=</span> <span class="st">&quot;catppuccin-mocha&quot;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="dt">background</span> <span class="op">=</span> <span class="st">&quot;#1e1e2e&quot;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="dt">foreground</span> <span class="op">=</span> <span class="st">&quot;#cdd6f4&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Window settings</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="dt">initial-window-size</span> <span class="op">=</span> <span class="st">&quot;1200x800&quot;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="dt">window-padding-x</span> <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="dt">window-padding-y</span> <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="dt">background-opacity</span> <span class="op">=</span> <span class="fl">0.92</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Key bindings</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="dt">keybind</span> <span class="op">=</span> <span class="st">&quot;cmd+t=new_tab&quot;</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="dt">keybind</span> <span class="op">=</span> <span class="st">&quot;cmd+w=close&quot;</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="dt">keybind</span> <span class="op">=</span> <span class="st">&quot;cmd+d=split:right&quot;</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="dt">keybind</span> <span class="op">=</span> <span class="st">&quot;cmd+shift+d=split:down&quot;</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="dt">keybind</span> <span class="op">=</span> <span class="st">&quot;cmd+f=show_search&quot;</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="dt">keybind</span> <span class="op">=</span> <span class="st">&quot;cmd+c=copy_to_clipboard&quot;</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="dt">keybind</span> <span class="op">=</span> <span class="st">&quot;cmd+v=paste_from_clipboard&quot;</span></span></code></pre></div>
+<p><strong>Core shortcuts:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Shortcut</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Cmd+T</code></td>
+<td>New tab</td>
+</tr>
+<tr>
+<td><code>Cmd+D</code></td>
+<td>Split right</td>
+</tr>
+<tr>
+<td><code>Cmd+Shift+D</code></td>
+<td>Split down</td>
+</tr>
+<tr>
+<td><code>Cmd+W</code></td>
+<td>Close tab</td>
+</tr>
+<tr>
+<td><code>Cmd+Enter</code></td>
+<td>Toggle full screen</td>
+</tr>
+<tr>
+<td><code>Cmd+F</code></td>
+<td>Search</td>
+</tr>
+<tr>
+<td><code>Cmd+Plus/Minus</code></td>
+<td>Change font size</td>
+</tr>
+</tbody>
+</table>
+<h3 id="configure-zoxide">Configure Zoxide</h3>
+<p>Edit <code>~/.zshrc</code> or <code>~/.bashrc</code>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize zoxide</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">eval</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">zoxide</span> init zsh<span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Useful aliases</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">alias</span> z=<span class="st">&quot;z&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="bu">alias</span> zi=<span class="st">&quot;z -i&quot;</span>  <span class="co"># Interactive selection</span></span></code></pre></div>
+<p><strong>Basic usage:</strong></p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Jump to a directory that matches a keyword</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span> projects          <span class="co"># Jump to ~/projects or /work/projects</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span> ai                <span class="co"># Jump to a directory containing &quot;ai&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Fuzzy matching</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span> proj/ai           <span class="co"># Match ~/projects/ai-tool</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># List all recorded directories</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Interactive selection</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="ex">zi</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Jump and list files</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span> projects <span class="at">-</span></span></code></pre></div>
+<p><strong>Adaptive learning:</strong> Zoxide records frequently visited
+directories and gives higher priority to locations that are used more
+often.</p>
+<h3 id="configure-yazi">Configure Yazi</h3>
+<p>Edit <code>~/.config/yazi/yazi.toml</code>:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[manager]</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="dt">show_hidden</span> <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="dt">sort_by</span> <span class="op">=</span> <span class="st">&quot;alphabetical&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="dt">sort_dir_first</span> <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">[preview]</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="dt">code_syntax_highlight</span> <span class="op">=</span> <span class="cn">true</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="dt">code_max_lines</span> <span class="op">=</span> <span class="dv">1000</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="dt">image_quality</span> <span class="op">=</span> <span class="dv">75</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="kw">[opener]</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="dt">edit</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">run</span><span class="op"> =</span> <span class="st">&#39;</span><span class="vs">${EDITOR:-vi} &quot;$@&quot;</span><span class="st">&#39;</span><span class="op">, </span><span class="dt">block</span><span class="op"> =</span> <span class="cn">true</span><span class="op">, </span><span class="dt">for</span><span class="op"> =</span> <span class="st">&quot;unix&quot;</span><span class="op"> },</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="dt">open</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="op">{ </span><span class="dt">run</span><span class="op"> =</span> <span class="st">&#39;</span><span class="vs">open &quot;$1&quot;</span><span class="st">&#39;</span><span class="op">, </span><span class="dt">for</span><span class="op"> =</span> <span class="st">&quot;macos&quot;</span><span class="op"> },</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span></code></pre></div>
+<p><strong>Basic usage:</strong></p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start Yazi</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">y</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">ya</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start in a specific directory</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="ex">y</span> ~/projects</span></code></pre></div>
+<p><strong>Core shortcuts:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j/k</code></td>
+<td>Move down/up</td>
+</tr>
+<tr>
+<td><code>l</code></td>
+<td>Enter a directory or open a file</td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>Go to the parent directory</td>
+</tr>
+<tr>
+<td><code>Tab</code></td>
+<td>Switch preview pane</td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td>Search files</td>
+</tr>
+<tr>
+<td><code>a</code></td>
+<td>Create a file or directory</td>
+</tr>
+<tr>
+<td><code>r</code></td>
+<td>Rename</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>Delete to trash</td>
+</tr>
+<tr>
+<td><code>c</code></td>
+<td>Copy</td>
+</tr>
+<tr>
+<td><code>x</code></td>
+<td>Cut</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>Paste</td>
+</tr>
+<tr>
+<td><code>.</code></td>
+<td>Show or hide files</td>
+</tr>
+<tr>
+<td><code>q</code></td>
+<td>Quit</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Preview support:</strong></p>
+<ul>
+<li>Code files: syntax highlighting</li>
+<li>Images: thumbnail previews</li>
+<li>PDFs: first-page previews</li>
+<li>Videos: cover previews</li>
+</ul>
+<h3 id="configure-lazygit">Configure Lazygit</h3>
+<p>Edit <code>~/.config/lazygit/config.yml</code>:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gui</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">theme</span><span class="kw">:</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">activeBorderColor</span><span class="kw">:</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;#89b4fa&quot;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;bold&quot;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">selectedLineBgColor</span><span class="kw">:</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="st">&quot;#313244&quot;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">mouseEvents</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">showFileTree</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span><span class="kw">:</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">autoRefresh</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">autoRefreshPeriod</span><span class="kw">:</span><span class="at"> </span><span class="dv">5</span></span></code></pre></div>
+<p><strong>Basic usage:</strong></p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start from a project directory</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/your-project</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">lg</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ex">lazygit</span></span></code></pre></div>
+<p><strong>Interface layout:</strong></p>
+<pre class="text"><code>┌─ Files ─────────────┬─ Diff ──────────────┐
+│ M src/main.rs       │ @@ -12,7 +12,9 @@   │
+│ M Cargo.toml        │  fn main() {        │
+│ ? README.md         │ +   // new code     │
+│                     │      old code       │
+└─────────────────────┴─────────────────────┘
+┌─ Branches ──────────┬─ Commits ───────────┐
+│ * feature/auth      │ abc123 Add login    │
+│   main              │ def456 Fix bug      │
+│   develop           │ 789xyz Update deps  │
+└─────────────────────┴─────────────────────┘</code></pre>
+<p><strong>Core shortcuts:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j/k</code></td>
+<td>Move down/up</td>
+</tr>
+<tr>
+<td><code>Space</code></td>
+<td>Select or deselect a file</td>
+</tr>
+<tr>
+<td><code>a</code></td>
+<td>Stage a file</td>
+</tr>
+<tr>
+<td><code>c</code></td>
+<td>Commit</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>Push</td>
+</tr>
+<tr>
+<td><code>P</code></td>
+<td>Pull</td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>Switch branch</td>
+</tr>
+<tr>
+<td><code>B</code></td>
+<td>Create branch</td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>Merge branch</td>
+</tr>
+<tr>
+<td><code>r</code></td>
+<td>Refresh</td>
+</tr>
+<tr>
+<td><code>q</code></td>
+<td>Quit</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Show the full shortcut list</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Advanced capabilities:</strong></p>
+<ul>
+<li><strong>Partial commits:</strong> stage selected lines only.</li>
+<li><strong>Interactive rebase:</strong> adjust commit history
+visually.</li>
+<li><strong>Conflict resolution:</strong> compare changes side by side
+and choose the version to retain.</li>
+<li><strong>Staging-area management:</strong> inspect staged and
+unstaged changes separately.</li>
+</ul>
+<h2 id="complete-workflow-examples">Complete Workflow Examples</h2>
+<h3 id="scenario-develop-and-commit-a-new-feature">Scenario: Develop and
+Commit a New Feature</h3>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Use zoxide to reach a project quickly</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span> ai-project</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Use yazi to inspect the file structure</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="ex">y</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Edit code with a preferred editor</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="ex">code</span> .</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Use lazygit to inspect and commit changes</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="ex">lg</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co"># → Press Space to select files</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co"># → Press c to enter a commit message</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co"># → Press p to push to the remote</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Inspect logs in a Ghostty split pane</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="ex">Cmd+D</span>  <span class="co"># Split right</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-f</span> logs/app.log</span></code></pre></div>
+<h3 id="scenario-work-on-multiple-projects-in-parallel">Scenario: Work
+on Multiple Projects in Parallel</h3>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ghostty split-pane workflow</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Left: Project A</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span> project-a</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="ex">lg</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Right: Project B, created with Cmd+D</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="ex">z</span> project-b</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="ex">y</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Bottom: system monitoring, created with Cmd+Shift+D</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="ex">htop</span></span></code></pre></div>
+<h2 id="common-questions">Common Questions</h2>
+<h3 id="q1-why-does-the-font-look-incorrect">Q1: Why does the font look
+incorrect?</h3>
+<p><strong>A:</strong> Install a Nerd Font and set it explicitly:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">font-family</span> <span class="op">=</span> <span class="st">&quot;JetBrainsMono Nerd Font&quot;</span></span></code></pre></div>
+<h3 id="q2-why-are-yazi-previews-garbled">Q2: Why are Yazi previews
+garbled?</h3>
+<p><strong>A:</strong> Install <code>bat</code> and
+<code>ffmpegthumbnailer</code>:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install bat ffmpeg</span></code></pre></div>
+<h3 id="q3-why-are-chinese-characters-garbled-in-lazygit">Q3: Why are
+Chinese characters garbled in Lazygit?</h3>
+<p><strong>A:</strong> Ensure that the terminal supports UTF-8; Ghostty
+does by default.</p>
+<h3 id="q4-why-can-zoxide-not-find-a-directory">Q4: Why can Zoxide not
+find a directory?</h3>
+<p><strong>A:</strong> Visit the directory with <code>cd</code> a few
+times first so that Zoxide can learn the location.</p>
+<h2 id="advanced-tips">Advanced Tips</h2>
+<h3 id="advanced-zoxide-usage">Advanced Zoxide Usage</h3>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove a saved directory record</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">zoxide</span> remove ~/old-project</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Export saved records</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="ex">zoxide</span> query <span class="at">--list</span> <span class="op">&gt;</span> directories.txt</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Integrate with Yazi</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ~/.config/yazi/keymap.toml</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="ex">[[manager.prepend_keymap]]</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="ex">on</span>   = [ <span class="st">&quot;c&quot;</span>, <span class="st">&quot;z&quot;</span> ]</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="ex">run</span>  = <span class="st">&quot;plugin zoxide&quot;</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="ex">desc</span> = <span class="st">&quot;Jump to a directory using zoxide&quot;</span></span></code></pre></div>
+<h3 id="recommended-yazi-plugins">Recommended Yazi Plugins</h3>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install the plugin manager</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/yazi-rs/plugins.git ~/.config/yazi/plugins</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Recommended plugins</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># - zoxide.yazi: directory navigation</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co"># - git.yazi: Git status display</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># - full-border.yazi: decorative borders</span></span></code></pre></div>
+<h3 id="lazygit-custom-commands">Lazygit Custom Commands</h3>
+<p>The following example contains a destructive Git reset. Use it only
+after confirming that discarding the latest commit is intended and that
+recoverability has been considered.</p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ~/.config/lazygit/config.yml</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">customCommands</span><span class="kw">:</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">key</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;&lt;c-r&gt;&quot;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">command</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;git reset --hard HEAD~1&quot;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Discard the most recent commit&quot;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">context</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;commits&quot;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">prompts</span><span class="kw">:</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">type</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;confirm&quot;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Confirm reset&quot;</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">body</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Discard the most recent commit?&quot;</span></span></code></pre></div>
+<h2 id="summary">Summary</h2>
+<p>This tool combination can substantially improve terminal-based
+development.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Learning curve</th>
+<th>Efficiency gain</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ghostty</td>
+<td>⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Zoxide</td>
+<td>⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Lazygit</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Yazi</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Suggested learning path:</strong></p>
+<ol type="1">
+<li><strong>Week 1:</strong> Ghostty and Zoxide, which have the lowest
+learning curve.</li>
+<li><strong>Week 2:</strong> Lazygit for complex Git operations.</li>
+<li><strong>Week 3:</strong> Yazi for advanced file management.</li>
+</ol>
+<p><strong>Final goal:</strong> complete development work without taking
+your hands off the keyboard.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://ghostty.org">Ghostty</a></li>
+<li><a href="https://github.com/ajeetdsouza/zoxide">Zoxide on
+GitHub</a></li>
+<li><a href="https://yazi-rs.github.io">Yazi</a></li>
+<li><a href="https://github.com/jesseduffield/lazygit">Lazygit on
+GitHub</a></li>
+<li><a href="https://catppuccin.com">Catppuccin</a></li>
+</ul>
+<p><em>Last updated: 2026-03-14. Tested on macOS 26.3.1
+(arm64).</em></p>
+</div></article></main>
+    <footer class="site-footer"><div class="shell footer-inner"><span class="footer-credit">&copy; Reserved by <i class="fa fa-heart footer-heart" aria-hidden="true"></i>&nbsp;Bin Chen. <span id="current-year">2026</span>.</span><span class="footer-unit-logo" aria-label="Northwest A&amp;F University"><span class="footer-logo-item"><img class="footer-logo-nwafu" src="../../../image/mine/nwafu-logo.png" alt="Northwest A&amp;F University" /></span></span></div></footer>
+  </body>
+</html>
