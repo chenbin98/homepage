@@ -174,6 +174,8 @@ const projectDetails = {
     category: "Industry R&D Project",
     organization: "Zhonglian Smart Agriculture Co., Ltd.",
     funding: "CNY 5,000,000",
+    period: "2024.09–2028.09",
+    periodLabel: "Project period",
     image: "image/project/zhonglian-rice-smart-protection/zhonglian-rice-smart-protection.png",
     link: "#",
     summary:
