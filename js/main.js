@@ -161,7 +161,7 @@ const projectDetails = {
   "smart-agriculture": {
     title: "United Smart Ag",
     category: "Smart Agriculture Team",
-    image: "image/project/2021-project-smart-agriculture-m.jpg",
+    image: "image/mine/united-smart-ag.png",
     link: "http://www.united-smartag.com/",
     summary:
       "A smart agriculture team connecting agricultural modelling, artificial intelligence, and practical decision support for sustainable farming.",
