@@ -4,4 +4,4 @@ This website is the personal academic homepage of Kai Ren. It presents research 
 
 ![Kai Ren banner](image/mine/kai-banner.jpg)
 
-Website: [https://renkaigis.cn/](https://renkaigis.cn/)
+Website: [https://chenbin98.github.io/homepage/](https://chenbin98.github.io/homepage/)
