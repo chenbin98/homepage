@@ -17,7 +17,7 @@ const paperDetails = {
     title: "Water-saving and economic benefits of a soil moisture threshold-based irrigation strategy for cotton in Xinjiang under climate change",
     authors: "Bin Chen, L. Yao, Y. Liu, M. A. Benaly, C. Yan, G. Wu, R. Guan, Y. Li, D. Zhang, et al.",
     venue: "European Journal of Agronomy, 2026",
-    image: "image/paper/2026-grs-srk/2026-grs-srk-m.jpg",
+    image: "image/paper/2026-eja-cotton-irrigation/cotton-irrigation.png",
     abstract:
       "This study evaluates a soil-moisture threshold irrigation strategy for cotton in Xinjiang, quantifying water-saving and economic benefits under current and future climate conditions.",
     doi: "https://doi.org/10.1016/j.eja.2026.128152",
