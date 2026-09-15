@@ -187,7 +187,7 @@ const projectDetails = {
     organization: "Xi'an, Shaanxi, China",
     grantNumber: "2023-ZDLNY-64",
     funding: "CNY 650,000",
-    image: "image/mine/chenbin_Logo.png",
+    image: "image/project/shaanxi-ai-pest-diagnosis/shaanxi-ai-pest-diagnosis.png",
     link: "#",
     summary:
       "Research and demonstration of artificial-intelligence diagnosis and early warning for crop pests and diseases.",
