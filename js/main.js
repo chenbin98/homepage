@@ -217,6 +217,18 @@ const projectDetails = {
     methods: "Disease monitoring, green prevention and control technologies, and application demonstration.",
     readMore: "#"
   },
+  "rizhao-rose-cut-flower": {
+    title: "Rose Cut-Flower Industry Development R&D Project in Zhaoxian Town, Rizhao, Shandong",
+    category: "Agricultural R&D Project",
+    organization: "Zhaoxian Town, Rizhao, Shandong, China",
+    funding: "CNY 300,000",
+    image: "image/project/rizhao-rose-cut-flower/rizhao-rose-cut-flower.png",
+    link: "#",
+    summary:
+      "Technology research and development for the rose cut-flower industry in Zhaoxian Town, supporting local protected horticulture and industry development.",
+    methods: "Protected horticulture, rose production, cut-flower quality management, and technology demonstration.",
+    readMore: "#"
+  },
   "xinjiang-cotton": {
     title: "Xinjiang Cotton Decision Management Support System",
     category: "Agricultural GIS",
@@ -339,6 +351,15 @@ const projectDetailsZh = {
     funding: "65 万 CNY",
     summary: "开展葡萄霜霉病绿色综合防控技术研发与应用示范。",
     methods: "病害监测、绿色防控技术研发与应用示范。"
+  },
+  "rizhao-rose-cut-flower": {
+    ...projectDetails["rizhao-rose-cut-flower"],
+    title: "山东日照市招贤镇玫瑰鲜切花产业发展技术研发项目",
+    category: "农业研发项目",
+    organization: "山东省日照市招贤镇",
+    funding: "30 万 CNY",
+    summary: "面向山东日照市招贤镇玫瑰鲜切花产业开展技术研发，助力设施园艺与产业发展。",
+    methods: "设施园艺、玫瑰生产、鲜切花品质管理与技术示范。"
   },
   "xinjiang-cotton": {
     ...projectDetails["xinjiang-cotton"],
