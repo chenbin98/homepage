@@ -199,7 +199,7 @@ const projectDetails = {
     category: "Innovation Base Project",
     organization: "Sinochem Modern Agriculture Co., Ltd.",
     funding: "CNY 350,000",
-    image: "image/mine/chenbin_Logo.png",
+    image: "image/project/rikaze-barley-phenology/rikaze-barley-phenology.png",
     link: "#",
     summary:
       "Development of barley phenology and suitable sowing-date models for the Shigatse innovation base.",
