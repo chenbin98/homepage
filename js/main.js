@@ -30,7 +30,7 @@ const paperDetails = {
     title: "Overcoming mechanistic limitations of process-based phenological models: A data clustering method for large-scale applications",
     authors: "J. Tan, G. Zhao, Q. Tian, L. Zheng, X. Kang, Q. He, Y. Shi, Bin Chen, et al.",
     venue: "Agricultural and Forest Meteorology, 2024",
-    image: "image/paper/2025-ijgis-sdo/2025-ijgis-sdo-m.jpg",
+    image: "image/paper/2024-agrformet-phenology/phenology-clustering.png",
     abstract:
       "This study introduces a data-clustering approach that helps process-based phenological models overcome mechanistic limitations and scale more reliably across heterogeneous environments.",
     doi: "https://doi.org/10.1016/j.agrformet.2024.110167",
