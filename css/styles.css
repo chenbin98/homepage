@@ -3933,15 +3933,8 @@ h3 {
 }
 
 .footer-unit-logo .footer-logo-nwafu {
-  max-width: min(100px, 30vw);
-}
-
-.footer-unit-logo .footer-logo-iswc {
-  max-width: min(220px, 38vw);
-}
-
-.footer-unit-logo .footer-logo-state-key-lab {
-  max-width: min(220px, 40vw);
+  max-width: min(180px, 42vw);
+  height: 42px;
 }
 
 .footer-logo-opengms {
@@ -5393,18 +5386,17 @@ code {
   }
 
   .footer-unit-logo img {
-    height: 28px;
-    max-width: min(145px, 58vw);
+    height: 32px;
+    max-width: min(160px, 72vw);
   }
 
   .footer-logo-item {
     min-height: 28px;
   }
 
-  .footer-unit-logo .footer-logo-nwafu,
-  .footer-unit-logo .footer-logo-iswc,
-  .footer-unit-logo .footer-logo-state-key-lab {
-    max-width: min(190px, 58vw);
+  .footer-unit-logo .footer-logo-nwafu {
+    max-width: min(160px, 72vw);
+    height: 32px;
   }
 
   .footer-unit-logo a {
