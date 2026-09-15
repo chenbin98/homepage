@@ -25,4 +25,5 @@
 - 已实现静态文章构建、英文索引 `blogs/index.html`、中文索引 `zh/blogs/index.html` 以及 22 个英文详情页；两种索引均指向同一英文正文。
 - 已将 Blogs 插入首页、中文首页、About、Publications、Projects 与 News 的导航（Projects → Blogs → News），并添加页面样式、语言互链和详情页排版。
 - 已通过 3/3 Node 测试、22 页构建检查、静态资源 HTTP 200 检查和浏览器首屏渲染检查。
-- 下一步：复核暂存内容，提交并推送，然后核验 GitHub Pages 构建与线上渲染。
+- 已提交并推送页面实现：`fac3767`（`feat: publish bilingual blogs section`）。
+- GitHub Pages 已完成构建并部署该提交；英文索引、中文索引和一篇英文详情页均已在线返回 HTTP 200，浏览器已实际确认两种索引的页面标题、导航、卡片内容和语言互链。
