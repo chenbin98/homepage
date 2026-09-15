@@ -1642,6 +1642,11 @@ h3 {
   object-fit: contain;
 }
 
+.about-logo-haust,
+.about-logo-nwafu {
+  height: 46px;
+}
+
 .about-logo-dark {
   display: none;
 }
