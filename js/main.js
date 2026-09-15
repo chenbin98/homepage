@@ -574,6 +574,12 @@ function setupHomeNewsFeed() {
       const documentFragment = new DOMParser().parseFromString(markup, "text/html");
       const sourceUrl = new URL(source, window.location.href);
       const cards = Array.from(documentFragment.querySelectorAll(".notes-list .note-card"));
+      cards.sort((first, second) => {
+        const firstDate = first.querySelector("time.note-date")?.getAttribute("datetime") || "";
+        const secondDate = second.querySelector("time.note-date")?.getAttribute("datetime") || "";
+        return secondDate.localeCompare(firstDate);
+      });
+
       const items = cards.slice(0, limit).map((card) => {
         const dateNode = card.querySelector("time.note-date");
         const titleNode = card.querySelector(".note-card-title");
