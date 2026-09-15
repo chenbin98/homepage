@@ -4,7 +4,7 @@ const paperDetails = {
     authors:
       "Bin Chen, Gang Zhao, Qi Tian, L. Yao, G. Wu, J. Wang, Qiang Yu",
     venue: "Agricultural and Forest Meteorology, 2025",
-    image: "image/paper/2026-ijgis-soh/2026-ijgis-soh-m.jpg",
+    image: "image/paper/2025-agrformet-alternaria/alternaria-leaf-blotch.png",
     abstract:
       "This study projects how climate change may shift the suitable areas of Alternaria leaf blotch on apples across China and evaluates uncertainty across climate and modelling scenarios.",
     doi: "https://doi.org/10.1016/j.agrformet.2025.110464",
