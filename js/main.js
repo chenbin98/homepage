@@ -535,6 +535,80 @@ function setCurrentYear() {
   });
 }
 
+function setupHomeNewsFeed() {
+  const list = document.querySelector(".compact-news[data-news-source]");
+
+  if (!list) {
+    return;
+  }
+
+  const source = list.dataset.newsSource;
+  const limit = Math.max(Number.parseInt(list.dataset.newsLimit || "3", 10), 1);
+  const isChinese = document.documentElement.lang?.toLowerCase().startsWith("zh");
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const formatDate = (value) => {
+    const match = /^(\d{4})-(\d{1,2})/.exec(value || "");
+
+    if (!match) {
+      return value || "";
+    }
+
+    const year = match[1];
+    const month = Number.parseInt(match[2], 10);
+    return isChinese ? `${year}.${String(month).padStart(2, "0")}` : `${monthNames[month - 1] || ""} ${year}`;
+  };
+
+  const requestUrl = new URL(source, window.location.href);
+  requestUrl.searchParams.set("v", Date.now().toString());
+
+  fetch(requestUrl.toString(), { cache: "no-store" })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`News feed request failed: ${response.status}`);
+      }
+
+      return response.text();
+    })
+    .then((markup) => {
+      const documentFragment = new DOMParser().parseFromString(markup, "text/html");
+      const sourceUrl = new URL(source, window.location.href);
+      const cards = Array.from(documentFragment.querySelectorAll(".notes-list .note-card"));
+      const items = cards.slice(0, limit).map((card) => {
+        const dateNode = card.querySelector("time.note-date");
+        const titleNode = card.querySelector(".note-card-title");
+        const linkNode = card.querySelector("a");
+
+        if (!dateNode || !titleNode || !linkNode) {
+          return null;
+        }
+
+        const item = document.createElement("li");
+        const date = document.createElement("time");
+        const link = document.createElement("a");
+        const dateValue = dateNode.getAttribute("datetime") || "";
+        const title = isChinese
+          ? card.dataset.homeTitleZh || titleNode.textContent.trim()
+          : card.dataset.homeTitleEn || titleNode.textContent.trim();
+
+        date.dateTime = dateValue;
+        date.textContent = formatDate(dateValue);
+        link.className = "compact-news-link";
+        link.href = new URL(linkNode.getAttribute("href") || "#", sourceUrl).toString();
+        link.textContent = title;
+        item.append(date, document.createTextNode(" "), link);
+        return item;
+      }).filter(Boolean);
+
+      if (items.length > 0) {
+        list.replaceChildren(...items);
+      }
+    })
+    .catch(() => {
+      // Keep the server-rendered fallback entries when the feed is unavailable.
+    });
+}
+
 function setupPaperAssetSizing() {
   const applyAssetClass = (image) => {
     const card = image.closest(".paper-asset-card");
@@ -1024,6 +1098,7 @@ normalizeReversedOrderedLists();
 setCurrentYear();
 setupThemeToggle();
 setupNavigation();
+setupHomeNewsFeed();
 setupDetailDialog();
 setupGalleryLightbox();
 setupPaperAssetSizing();
