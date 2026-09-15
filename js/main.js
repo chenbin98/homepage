@@ -210,7 +210,7 @@ const projectDetails = {
     title: "Green Integrated Management of Grape Downy Mildew | R&D and Demonstration",
     category: "Guangxi Key R&D Program",
     funding: "CNY 650,000",
-    image: "image/mine/chenbin_Logo.png",
+    image: "image/project/grape-downy-mildew/grape-downy-mildew.png",
     link: "#",
     summary:
       "Research, development, and demonstration of green integrated technologies for grape downy mildew control.",
