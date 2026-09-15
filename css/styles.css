@@ -2384,14 +2384,14 @@ h3 {
   font-size: 0.98rem;
 }
 
-.icon-links a.tech-blog-link {
+.icon-links a.gmail-link {
   width: auto;
   min-width: 88px;
   padding: 0 0.35rem;
   border-radius: 999px;
 }
 
-.icon-links a.tech-blog-link img {
+.icon-links a.gmail-link img {
   width: auto;
   height: 20px;
   max-width: none;
