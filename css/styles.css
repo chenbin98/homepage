@@ -2539,7 +2539,7 @@ h3 {
 
 .home-affiliation-logos {
   --home-logo-gap: clamp(0.28rem, 1cqw, 0.72rem);
-  --home-logo-height: clamp(12px, 4.35cqw, 26px);
+  --home-logo-height: clamp(18px, 4.8cqw, 34px);
 
   display: inline-flex;
   flex-wrap: nowrap;
