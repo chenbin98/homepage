@@ -4137,6 +4137,11 @@ h3 {
   object-fit: cover;
 }
 
+.friend-avatar.team-avatar img {
+  object-fit: contain;
+  padding: 2px;
+}
+
 .friend-links a:hover .friend-avatar {
   border-color: var(--accent);
   background: rgba(49, 92, 82, 0.08);
