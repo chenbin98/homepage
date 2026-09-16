@@ -161,7 +161,8 @@ function renderBlogCard(post, locale, href, rootPrefix, featured = false) {
   const summary = chinese ? post.summaryZh : post.summary;
   const category = chinese ? post.categoryZh : post.category;
   const tags = post.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
-  return `<article class="blog-card${featured ? " blog-card-featured" : ""}"><a href="${href}"><span class="blog-card-visual"><img src="${coverPath(post, rootPrefix)}" alt="${escapeHtml(title)}" loading="lazy" /></span><span class="blog-card-body"><span class="blog-card-meta">${escapeHtml(category)} · ${formatDate(post.date, locale)}</span><strong>${escapeHtml(title)}</strong><span class="blog-card-summary">${escapeHtml(summary)}</span><span class="blog-card-tags">${tags}</span><span class="blog-card-action">${chinese ? "阅读英文原文" : "Read article"} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></span></a></article>`;
+  const cardTitle = featured ? "" : `<strong>${escapeHtml(title)}</strong>`;
+  return `<article class="blog-card${featured ? " blog-card-featured" : ""}"><a href="${href}"><span class="blog-card-visual"><img src="${coverPath(post, rootPrefix)}" alt="${escapeHtml(title)}" loading="lazy" /></span><span class="blog-card-body"><span class="blog-card-meta">${escapeHtml(category)} · ${formatDate(post.date, locale)}</span>${cardTitle}<span class="blog-card-summary">${escapeHtml(summary)}</span><span class="blog-card-tags">${tags}</span><span class="blog-card-action">${chinese ? "阅读英文原文" : "Read article"} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></span></a></article>`;
 }
 
 function renderIndexContent(posts, locale, rootPrefix) {
