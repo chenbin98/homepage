@@ -1,4 +1,17 @@
 const paperDetails = {
+  "late-spring-frost": {
+    title: "Spatio-temporal evolution of late spring frost and associated yield reduction risk for winter wheat in China",
+    authors: "Kunhao Jiang, Min Su, Fangfang Liu, Xiaoqi Kang, Xinyi Fan, Bin Chen, Yingnan Wei, Linchao Li, Qiang Yu, Gang Zhao, Genghong Wu",
+    venue: "Agricultural and Forest Meteorology, 390, 111487 (2026)",
+    image: "image/paper/2026-agrformet-late-spring-frost/late-spring-frost.png",
+    abstract:
+      "This study develops a phenology-constrained, event-based framework to assess late spring frost and associated yield-reduction risk for winter wheat across China under historical and future climate conditions.",
+    doi: "https://doi.org/10.1016/j.agrformet.2026.111487",
+    pdf: "#",
+    code: "#",
+    data: "#",
+    readMore: "pdf/2026-agrformet-late-spring-frost.pdf"
+  },
   "alternaria-leaf-blotch": {
     title: "Climate-driven shifts in suitable areas of Alternaria leaf blotch (Alternaria mali Roberts) on apples: Projections and uncertainty analysis in China",
     authors:
@@ -99,6 +112,12 @@ const paperDetails = {
 };
 
 const paperDetailsZh = {
+  "late-spring-frost": {
+    ...paperDetails["late-spring-frost"],
+    abstract:
+      "本文构建了一个受物候约束的事件型评估框架，分析历史和未来气候条件下中国冬小麦晚春霜冻及其产量降低风险。",
+    readMore: "pdf/2026-agrformet-late-spring-frost.pdf"
+  },
   "alternaria-leaf-blotch": {
     ...paperDetails["alternaria-leaf-blotch"],
     abstract:

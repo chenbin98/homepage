@@ -8,6 +8,7 @@ const publications = fs.readFileSync(new URL("../publications/index.html", impor
 const scripts = fs.readFileSync(new URL("../js/main.js", import.meta.url), "utf8");
 
 const journalPdfs = {
+  "late-spring-frost": "2026-agrformet-late-spring-frost.pdf",
   sporascan: "2026-pms-sporascan.pdf",
   "cotton-irrigation": "2026-eja-cotton-irrigation.pdf",
   "alternaria-leaf-blotch": "2025-agrformet-alternaria-leaf-blotch.pdf",
@@ -24,6 +25,11 @@ const conferenceDois = {
   "sustainable-cotton-irrigation": "https://doi.org/10.5194/egusphere-egu25-12369"
 };
 
+const conferenceDetails = {
+  "egu25-12227": "https://meetingorganizer.copernicus.org/EGU25/EGU25-12227.html",
+  "egu25-12159": "https://meetingorganizer.copernicus.org/EGU25/EGU25-12159.html"
+};
+
 test("journal titles and featured publication cards open their corresponding local PDFs", () => {
   for (const [id, filename] of Object.entries(journalPdfs)) {
     assert.match(
@@ -35,6 +41,7 @@ test("journal titles and featured publication cards open their corresponding loc
   }
 
   for (const [id, filename] of Object.entries({
+    "late-spring-frost": journalPdfs["late-spring-frost"],
     "alternaria-leaf-blotch": journalPdfs["alternaria-leaf-blotch"],
     "cotton-irrigation": journalPdfs["cotton-irrigation"],
     "phenology-model-clustering": journalPdfs["phenology-model-clustering"]
@@ -57,8 +64,19 @@ test("conference titles use their official DOI destinations", () => {
   }
 });
 
+test("new EGU25 conference titles use the supplied abstract detail pages", () => {
+  for (const [id, url] of Object.entries(conferenceDetails)) {
+    assert.match(
+      publications,
+      new RegExp(`<li id="${id}">[\\s\\S]*?<a class="publication-title" href="${url}"`),
+      `${id} should link to its Copernicus abstract page`
+    );
+  }
+});
+
 test("home Featured Papers read-more links open the corresponding PDFs in both languages", () => {
   for (const filename of [
+    journalPdfs["late-spring-frost"],
     journalPdfs["alternaria-leaf-blotch"],
     journalPdfs["cotton-irrigation"],
     journalPdfs["phenology-model-clustering"]
@@ -66,5 +84,15 @@ test("home Featured Papers read-more links open the corresponding PDFs in both l
     const expected = `readMore: "pdf/${filename}"`;
     const count = scripts.split(expected).length - 1;
     assert.equal(count, 2, `${filename} should be used by English and Chinese featured-paper dialogs`);
+  }
+});
+
+test("the latest frost-risk paper uses its supplied thumbnail in both home languages and news", () => {
+  assert.match(publications, /id="late-spring-frost"[\s\S]*?late-spring-frost\.png/);
+  assert.match(scripts, /"late-spring-frost"[\s\S]*?late-spring-frost\.png/);
+
+  for (const filename of ["index.html", "zh/index.html", "news/index.html"]) {
+    const html = fs.readFileSync(new URL(`../${filename}`, import.meta.url), "utf8");
+    assert.match(html, /late-spring-frost\.png/, `${filename} should use the new supplied thumbnail`);
   }
 });
