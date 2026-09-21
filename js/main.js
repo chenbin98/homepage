@@ -11,7 +11,7 @@ const paperDetails = {
     pdf: "#",
     code: "#",
     data: "#",
-    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:d1gkVwhDpl0C"
+    readMore: "pdf/2025-agrformet-alternaria-leaf-blotch.pdf"
   },
   "cotton-irrigation": {
     title: "Water-saving and economic benefits of a soil moisture threshold-based irrigation strategy for cotton in Xinjiang under climate change",
@@ -24,7 +24,7 @@ const paperDetails = {
     pdf: "#",
     code: "#",
     data: "#",
-    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:eQOLeE2rZwMC"
+    readMore: "pdf/2026-eja-cotton-irrigation.pdf"
   },
   "phenology-model-clustering": {
     title: "Overcoming mechanistic limitations of process-based phenological models: A data clustering method for large-scale applications",
@@ -37,7 +37,7 @@ const paperDetails = {
     pdf: "#",
     code: "#",
     data: "#",
-    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:UeHWp8X0CEIC"
+    readMore: "pdf/2024-agrformet-phenology-model-clustering.pdf"
   },
   "wheat-production": {
     title:
@@ -103,19 +103,19 @@ const paperDetailsZh = {
     ...paperDetails["alternaria-leaf-blotch"],
     abstract:
       "本文预测气候变化下中国苹果褐斑病适生区的变化，并比较不同气候与模型情景带来的不确定性。",
-    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:d1gkVwhDpl0C"
+    readMore: "pdf/2025-agrformet-alternaria-leaf-blotch.pdf"
   },
   "cotton-irrigation": {
     ...paperDetails["cotton-irrigation"],
     abstract:
       "本文评估土壤含水量阈值灌溉策略在新疆棉花生产中的节水与经济效益，并分析气候变化情景下的表现。",
-    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:eQOLeE2rZwMC"
+    readMore: "pdf/2026-eja-cotton-irrigation.pdf"
   },
   "phenology-model-clustering": {
     ...paperDetails["phenology-model-clustering"],
     abstract:
       "本文提出数据聚类方法，帮助基于过程的物候模型克服机理限制，并提升其在大尺度异质环境中的应用能力。",
-    readMore: "https://scholar.google.com/citations?view_op=view_citation&hl=zh-CN&user=pN6ngXAAAAAJ&citation_for_view=pN6ngXAAAAAJ:UeHWp8X0CEIC"
+    readMore: "pdf/2024-agrformet-phenology-model-clustering.pdf"
   },
   "wheat-production": {
     ...paperDetails["wheat-production"],
